@@ -394,6 +394,9 @@
                                 <div className="grid grid-cols-2 gap-4">
                                     <input
                                         type="number"
+                                        inputmode="numeric"
+                                        pattern="[0-9]*"
+                                        autocomplete="off"
                                         value={width}
                                         onChange={(e) => setWidth(e.target.value)}
                                         placeholder="Ширина"
@@ -403,6 +406,9 @@
                                     />
                                     <input
                                         type="number"
+                                        inputmode="numeric"
+                                        pattern="[0-9]*"
+                                        autocomplete="off"
                                         value={height}
                                         onChange={(e) => setHeight(e.target.value)}
                                         placeholder="Висота"
