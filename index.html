@@ -29,7 +29,7 @@
         // КОНФІГУРАЦІЯ
         // ============================================================================
 
-        const SHOW_ITEM_PRICES = true;
+        const SHOW_ITEM_PRICES = false;
         const GOOGLE_SHEETS_ID = '1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo';
 
         // ============================================================================
@@ -225,14 +225,14 @@
 
             const calculations = useMemo(() => {
                 if (!selectedBaguette || !width || !height) {
-                    return { total: 0, details: [] };
+                    return { total: 0, details: [], dimensions: null };
                 }
 
                 const w = parseFloat(width);
                 const h = parseFloat(height);
 
                 if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) {
-                    return { total: 0, details: [] };
+                    return { total: 0, details: [], dimensions: null };
                 }
 
                 let total = 0;
@@ -372,7 +372,14 @@
                     });
                 }
 
-                return { total, details };
+                return {
+                    total,
+                    details,
+                    dimensions: {
+                        width: outerWidth,
+                        height: outerHeight
+                    }
+                };
             }, [selectedBaguette, width, height, withPassepartout, selectedPassepartout1, passepartout1Field,
                 showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
 
@@ -442,6 +449,16 @@
                                     </div>
                                 )}
                             </div>
+
+                            {/* Outer Dimensions Display */}
+                            {calculations.dimensions && (
+                                <div className="bg-gray-50 p-3 rounded-md border border-gray-200 text-sm">
+                                    <span className="text-gray-600">Зовнішній розмір рамки: </span>
+                                    <span className="font-semibold text-gray-900">
+                                        {Math.round(calculations.dimensions.width)} x {Math.round(calculations.dimensions.height)} мм
+                                    </span>
+                                </div>
+                            )}
 
                             {/* 2. Paspartu Mode */}
                             <div>
