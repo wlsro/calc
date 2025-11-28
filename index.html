@@ -10,55 +10,12 @@ const SHOW_ITEM_PRICES = false;
 
 // URL Google Sheets (замініть на свій після створення таблиці)
 // Інструкція в кінці коду
-const GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_SHEETS_URL_HERE';
+const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo/edit?usp=sharing';
 
 // ============================================================================
 // ТЕСТОВІ ДАНІ (видаліть після підключення Google Sheets)
 // ============================================================================
 
-const MOCK_DATA = {
-  baguette: [
-    { article: 'AM1515-015', model: 'AM1515', color: '015', pricePerMeter: 150, width: 30, additionalSize: 12 },
-    { article: 'AM1515-020', model: 'AM1515', color: '020', pricePerMeter: 150, width: 30, additionalSize: 12 },
-    { article: 'DM1715-073', model: 'DM1715', color: '073', pricePerMeter: 220, width: 45, additionalSize: 15 },
-    { article: 'BK2020-001', model: 'BK2020', color: '001', pricePerMeter: 180, width: 35, additionalSize: 13 },
-  ],
-  passepartout: [
-    { article: 'P-001', name: 'Паспарту біле 1.5мм', pricePerM2: 80 },
-    { article: 'P-002', name: 'Паспарту чорне 2мм', pricePerM2: 95 },
-    { article: 'P-003', name: 'Паспарту кремове 1.5мм', pricePerM2: 85 },
-  ],
-  components: {
-    innerWall: [
-      { name: 'ДВП', pricePerM2: 45, type: 'area' },
-      { name: 'Біле ДВП', pricePerM2: 55, type: 'area' },
-      { name: 'Підрамник', pricePerMeter: 35, type: 'perimeter' },
-      { name: 'ДВП + Підрамник', pricePerM2: 45, pricePerMeter: 35, type: 'combined' },
-      { name: 'Без нічого', pricePerM2: 0, type: 'none' },
-    ],
-    glass: [
-      { name: 'Скло звичайне', pricePerM2: 120 },
-      { name: 'Скло антиблікове', pricePerM2: 180 },
-      { name: 'Скло акрилове', pricePerM2: 150 },
-      { name: 'Без скла', pricePerM2: 0 },
-    ],
-    backWall: [
-      { name: 'Задник картон', pricePerM2: 30 },
-      { name: 'Задник ДВП', pricePerM2: 40 },
-      { name: 'Без задніка', pricePerM2: 0 },
-    ],
-    mounting: [
-      { name: 'Вушка', price: 15 },
-      { name: 'Вушка + ніжка', price: 25 },
-      { name: 'Без кріплення', price: 0 },
-    ],
-  },
-  workTypes: [
-    { name: 'Натяжка', price: 200 },
-    { name: 'Оформлення', price: 150 },
-    { name: 'Зшивка рамки', price: 100 },
-  ],
-};
 
 // ============================================================================
 // КОМПОНЕНТ
