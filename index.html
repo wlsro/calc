@@ -204,7 +204,7 @@
             const filteredBaguettes = useMemo(() => {
                 if (!baguetteSearch.trim()) return [];
                 const search = baguetteSearch.toLowerCase();
-                return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 10);
+                return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 20);
             }, [baguetteSearch, data.baguette]);
 
             const filteredPassepartout1 = useMemo(() => {
