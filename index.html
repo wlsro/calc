@@ -30,13 +30,57 @@
         // ============================================================================
 
         const SHOW_ITEM_PRICES = false;
-        const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo/edit?usp=sharing';
+        const GOOGLE_SHEETS_ID = '1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo';
 
         // ============================================================================
-        // ТЕСТОВІ ДАНІ
+        // ЗАВАНТАЖЕННЯ ДАНИХ З GOOGLE SHEETS
         // ============================================================================
 
-        // ============================================================================
+        async function loadDataFromGoogleSheets(sheetId) {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Парсимо відповідь (Google повертає JSONP)
+                const jsonText = text.substring(47).slice(0, -2);
+                const json = JSON.parse(jsonText);
+                
+                const rows = json.table.rows;
+                const baguetteData = [];
+                
+                // Пропускаємо перший рядок (заголовки)
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.c && row.c[0] && row.c[0].v) {
+                        const article = row.c[0]?.v || '';
+                        const model = row.c[1]?.v || '';
+                        const color = row.c[2]?.v || '';
+                        const pricePerMeter = parseFloat(row.c[3]?.v) || 0;
+                        const width = parseFloat(row.c[4]?.v) || 0;
+                        const additionalSize = parseFloat(row.c[5]?.v) || 0;
+                        
+                        if (article && pricePerMeter > 0) {
+                            baguetteData.push({
+                                article,
+                                model,
+                                color,
+                                pricePerMeter,
+                                width,
+                                additionalSize
+                            });
+                        }
+                    }
+                }
+                
+                return baguetteData;
+            } catch (error) {
+                console.error('Помилка завантаження даних:', error);
+                return null;
+            }
+        }
+
+               // ============================================================================
         // ІКОНКИ
         // ============================================================================
 
