@@ -23,7 +23,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useMemo, useEffect } = React;
 
         // ============================================================================
         // КОНФІГУРАЦІЯ
@@ -41,14 +41,14 @@
                 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
                 const response = await fetch(url);
                 const text = await response.text();
-                
+
                 // Парсимо відповідь (Google повертає JSONP)
                 const jsonText = text.substring(47).slice(0, -2);
                 const json = JSON.parse(jsonText);
-                
+
                 const rows = json.table.rows;
                 const baguetteData = [];
-                
+
                 // Пропускаємо перший рядок (заголовки)
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
@@ -59,7 +59,7 @@
                         const pricePerMeter = parseFloat(row.c[3]?.v) || 0;
                         const width = parseFloat(row.c[4]?.v) || 0;
                         const additionalSize = parseFloat(row.c[5]?.v) || 0;
-                        
+
                         if (article && pricePerMeter > 0) {
                             baguetteData.push({
                                 article,
@@ -72,7 +72,7 @@
                         }
                     }
                 }
-                
+
                 return baguetteData;
             } catch (error) {
                 console.error('Помилка завантаження даних:', error);
@@ -80,7 +80,55 @@
             }
         }
 
-               // ============================================================================
+        // ============================================================================
+        // ТЕСТОВІ ДАНІ
+        // ============================================================================
+
+        const MOCK_DATA = {
+            baguette: [
+                { article: 'AM1515-015', model: 'AM1515', color: '015', pricePerMeter: 150, width: 30, additionalSize: 12 },
+                { article: 'AM1515-020', model: 'AM1515', color: '020', pricePerMeter: 150, width: 30, additionalSize: 12 },
+                { article: 'DM1715-073', model: 'DM1715', color: '073', pricePerMeter: 220, width: 45, additionalSize: 15 },
+                { article: 'BK2020-001', model: 'BK2020', color: '001', pricePerMeter: 180, width: 35, additionalSize: 13 },
+            ],
+            passepartout: [
+                { article: 'P-001', name: 'Паспарту біле 1.5мм', pricePerM2: 80 },
+                { article: 'P-002', name: 'Паспарту чорне 2мм', pricePerM2: 95 },
+                { article: 'P-003', name: 'Паспарту кремове 1.5мм', pricePerM2: 85 },
+            ],
+            components: {
+                innerWall: [
+                    { name: 'ДВП', pricePerM2: 45, type: 'area' },
+                    { name: 'Біле ДВП', pricePerM2: 55, type: 'area' },
+                    { name: 'Підрамник', pricePerMeter: 35, type: 'perimeter' },
+                    { name: 'ДВП + Підрамник', pricePerM2: 45, pricePerMeter: 35, type: 'combined' },
+                    { name: 'Без нічого', pricePerM2: 0, type: 'none' },
+                ],
+                glass: [
+                    { name: 'Скло звичайне', pricePerM2: 120 },
+                    { name: 'Скло антиблікове', pricePerM2: 180 },
+                    { name: 'Скло акрилове', pricePerM2: 150 },
+                    { name: 'Без скла', pricePerM2: 0 },
+                ],
+                backWall: [
+                    { name: 'Задник картон', pricePerM2: 30 },
+                    { name: 'Задник ДВП', pricePerM2: 40 },
+                    { name: 'Без задніка', pricePerM2: 0 },
+                ],
+                mounting: [
+                    { name: 'Вушка', price: 15 },
+                    { name: 'Вушка + ніжка', price: 25 },
+                    { name: 'Без кріплення', price: 0 },
+                ],
+            },
+            workTypes: [
+                { name: 'Натяжка', price: 200 },
+                { name: 'Оформлення', price: 150 },
+                { name: 'Зшивка рамки', price: 100 },
+            ],
+        };
+
+        // ============================================================================
         // ІКОНКИ
         // ============================================================================
 
@@ -108,6 +156,9 @@
 
         function FrameCalculator() {
             const [data, setData] = useState(MOCK_DATA);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+
             const [baguetteSearch, setBaguetteSearch] = useState('');
             const [selectedBaguette, setSelectedBaguette] = useState(null);
             const [withPassepartout, setWithPassepartout] = useState(false);
@@ -127,6 +178,28 @@
             const [backWall, setBackWall] = useState(data.components.backWall[0].name);
             const [mounting, setMounting] = useState(data.components.mounting[0].name);
             const [workType, setWorkType] = useState(data.workTypes[0].name);
+
+            // Завантажуємо дані з Google Sheets при монтуванні компонента
+            useEffect(() => {
+                async function loadData() {
+                    setLoading(true);
+                    const baguetteData = await loadDataFromGoogleSheets(GOOGLE_SHEETS_ID);
+
+                    if (baguetteData && baguetteData.length > 0) {
+                        setData(prevData => ({
+                            ...prevData,
+                            baguette: baguetteData
+                        }));
+                        setError(null);
+                    } else {
+                        setError('Не вдалося завантажити дані. Використовуються тестові дані.');
+                    }
+
+                    setLoading(false);
+                }
+
+                loadData();
+            }, []);
 
             const filteredBaguettes = useMemo(() => {
                 if (!baguetteSearch.trim()) return [];
@@ -304,12 +377,24 @@
                 showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
 
             return (
-                <div className="min-h-screen bg-gray-50 p-4">
+                <div className="min-h-screen bg-gray-50 p-6">
                     <div className="max-w-3xl mx-auto">
                         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                             <h1 className="text-2xl font-semibold text-gray-900">Калькулятор вартості рамок</h1>
                             <p className="text-sm text-gray-600 mt-1">Розрахунок вартості оформлення фото та вишивок</p>
                         </div>
+
+                        {loading && (
+                            <div className="bg-blue-50 rounded-lg shadow-sm p-6 mb-6 text-center">
+                                <div className="text-blue-600">Завантаження даних з Google Sheets...</div>
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="bg-amber-50 rounded-lg shadow-sm p-4 mb-6 border border-amber-200">
+                                <div className="text-sm text-amber-800">⚠️ {error}</div>
+                            </div>
+                        )}
 
                         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
 
@@ -662,8 +747,8 @@
                                     </div>
                                 </div>
                                 <p>2. Зробіть таблицю публічною (Файл → Налаштування спільного доступу → Будь-хто з посиланням може переглядати)</p>
-                                <p>3. Скопіюйте URL таблиці та замініть у коді константу GOOGLE_SHEETS_URL</p>
-                                <p className="text-amber-600 font-medium">⚠️ Поки що калькулятор працює з тестовими даними</p>
+                                <p>3. Скопіюйте URL таблиці та замініть у коді константу GOOGLE_SHEETS_ID</p>
+                                <p className="text-amber-600 font-medium">⚠️ Поки що калькулятор працює з тестовими даними, якщо не вдалося завантажити з Google Sheets</p>
                             </div>
                         </div>
                     </div>
