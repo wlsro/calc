@@ -54,23 +54,25 @@
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.c && row.c[0] && row.c[0].v) {
-                        // Для багету і паспарту структура може відрізнятися
-                        const col0 = row.c[0]?.v || ''; // Article
-                        const col1 = row.c[1]?.v || ''; // Model / Name
-                        const col2 = row.c[2]?.v || ''; // Color / Price (for passepartout?)
-                        const col3 = parseFloat(row.c[3]?.v) || 0; // Price / ...
+                        const col0 = row.c[0]?.v || '';
+                        const col1 = row.c[1]?.v || '';
+                        const col2 = row.c[2]?.v || '';
+                        const col3 = parseFloat(row.c[3]?.v) || 0;
 
                         if (sheetName === 'Паспарту') {
-                            // Article | Name | Price
+                            // User specified structure: Article | Price
+                            // col0 = Article
+                            // col1 = Price
                             const article = col0;
-                            const name = col1;
-                            const pricePerM2 = parseFloat(col2) || 0;
+                            const name = article; // Use article as name since name is not provided
+                            const pricePerM2 = parseFloat(col1) || 0; // Price is in the second column
 
                             if (article && pricePerM2 > 0) {
                                 data.push({ article, name, pricePerM2 });
                             }
                         } else {
                             // Багет (default)
+                            // Article | Model | Color | Price | Width | AddSize
                             const article = col0;
                             const model = col1;
                             const color = col2;
@@ -98,10 +100,6 @@
                 return null;
             }
         }
-
-        // ============================================================================
-        // ТЕСТОВІ ДАНІ
-        // ============================================================================
 
         const MOCK_DATA = {
             baguette: [
