@@ -77,37 +77,37 @@
         }
 
         // Завантаження паспарту (другий лист, gid=1512021167)
-        async function loadPassepartoutFromGoogleSheets(sheetId) {
-            try {
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1512021167`;
-                const response = await fetch(url);
-                const text = await response.text();
-                const jsonText = text.substring(47).slice(0, -2);
-                const json = JSON.parse(jsonText);
-                const rows = json.table.rows;
-                const passepartoutData = [];
+		async function loadPassepartoutFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1512021167`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const passepartoutData = [];
 
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row.c && row.c[0] && row.c[0].v) {
-                        const article = row.c[0]?.v || '';
-                        const pricePerM2 = parseFloat(row.c[1]?.v) || 0;
+				for (let i = 1; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const article = String(row.c[0]?.v || ''); // Перетворюємо на рядок
+						const pricePerM2 = parseFloat(row.c[1]?.v) || 0;
 
-                        if (article && pricePerM2 > 0) {
-                            passepartoutData.push({
-                                article,
-                                name: article, // Використовуємо артикул як назву
-                                pricePerM2
-                            });
-                        }
-                    }
-                }
-                return passepartoutData;
-            } catch (error) {
-                console.error('Помилка завантаження паспарту:', error);
-                return null;
-            }
-        }
+						if (article && pricePerM2 > 0) {
+							passepartoutData.push({
+								article: article,
+								name: article, // Використовуємо артикул як назву
+								pricePerM2: pricePerM2
+							});
+						}
+					}
+				}
+				return passepartoutData;
+			} catch (error) {
+				console.error('Помилка завантаження паспарту:', error);
+				return null;
+			}
+		}
 
         // ============================================================================
         // ТЕСТОВІ ДАНІ
