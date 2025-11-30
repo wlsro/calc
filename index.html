@@ -36,10 +36,9 @@
         // ЗАВАНТАЖЕННЯ ДАНИХ З GOOGLE SHEETS
         // ============================================================================
 
-        async function loadDataFromGoogleSheets(sheetId, sheetName) {
+        async function loadDataFromGoogleSheets(sheetId) {
             try {
-                const sheetParam = sheetName ? `&sheet=${encodeURIComponent(sheetName)}` : '';
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json${sheetParam}`;
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
                 const response = await fetch(url);
                 const text = await response.text();
 
@@ -48,58 +47,35 @@
                 const json = JSON.parse(jsonText);
 
                 const rows = json.table.rows;
-                const data = [];
+                const baguetteData = [];
 
                 // Пропускаємо перший рядок (заголовки)
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.c && row.c[0] && row.c[0].v) {
-                        const col0 = row.c[0]?.v;
-                        const col1 = row.c[1]?.v;
-                        const col2 = row.c[2]?.v;
-                        const col3 = parseFloat(row.c[3]?.v) || 0;
+                        const article = row.c[0]?.v || '';
+                        const model = row.c[1]?.v || '';
+                        const color = row.c[2]?.v || '';
+                        const pricePerMeter = parseFloat(row.c[3]?.v) || 0;
+                        const width = parseFloat(row.c[4]?.v) || 0;
+                        const additionalSize = parseFloat(row.c[5]?.v) || 0;
 
-                        // Helper to safely convert to string
-                        const safeString = (val) => (val === null || val === undefined) ? '' : String(val);
-
-                        if (sheetName === 'Паспарту') {
-                            // User specified structure: Article | Price
-                            // col0 = Article
-                            // col1 = Price
-                            const article = safeString(col0);
-                            const name = article; // Use article as name since name is not provided
-                            const pricePerM2 = parseFloat(col1) || 0; // Price is in the second column
-
-                            if (article && pricePerM2 > 0) {
-                                data.push({ article, name, pricePerM2 });
-                            }
-                        } else {
-                            // Багет (default)
-                            // Article | Model | Color | Price | Width | AddSize
-                            const article = safeString(col0);
-                            const model = safeString(col1);
-                            const color = safeString(col2);
-                            const pricePerMeter = col3;
-                            const width = parseFloat(row.c[4]?.v) || 0;
-                            const additionalSize = parseFloat(row.c[5]?.v) || 0;
-
-                            if (article && pricePerMeter > 0) {
-                                data.push({
-                                    article,
-                                    model,
-                                    color,
-                                    pricePerMeter,
-                                    width,
-                                    additionalSize
-                                });
-                            }
+                        if (article && pricePerMeter > 0) {
+                            baguetteData.push({
+                                article,
+                                model,
+                                color,
+                                pricePerMeter,
+                                width,
+                                additionalSize
+                            });
                         }
                     }
                 }
 
-                return data;
+                return baguetteData;
             } catch (error) {
-                console.error(`Помилка завантаження даних (${sheetName || 'default'}):`, error);
+                console.error('Помилка завантаження даних:', error);
                 return null;
             }
         }
@@ -207,17 +183,12 @@
             useEffect(() => {
                 async function loadData() {
                     setLoading(true);
+                    const baguetteData = await loadDataFromGoogleSheets(GOOGLE_SHEETS_ID);
 
-                    // Завантажуємо багет (вкладка "Багет")
-                    const baguetteData = await loadDataFromGoogleSheets(GOOGLE_SHEETS_ID, 'Багет');
-                    // Завантажуємо паспарту (вкладка "Паспарту")
-                    const passepartoutData = await loadDataFromGoogleSheets(GOOGLE_SHEETS_ID, 'Паспарту');
-
-                    if ((baguetteData && baguetteData.length > 0) || (passepartoutData && passepartoutData.length > 0)) {
+                    if (baguetteData && baguetteData.length > 0) {
                         setData(prevData => ({
                             ...prevData,
-                            baguette: baguetteData && baguetteData.length > 0 ? baguetteData : prevData.baguette,
-                            passepartout: passepartoutData && passepartoutData.length > 0 ? passepartoutData : prevData.passepartout
+                            baguette: baguetteData
                         }));
                         setError(null);
                     } else {
@@ -233,14 +204,14 @@
             const filteredBaguettes = useMemo(() => {
                 if (!baguetteSearch.trim()) return [];
                 const search = baguetteSearch.toLowerCase();
-                return data.baguette.filter(b => String(b.article).toLowerCase().includes(search)).slice(0, 10);
+                return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 10);
             }, [baguetteSearch, data.baguette]);
 
             const filteredPassepartout1 = useMemo(() => {
                 if (!passepartout1Search.trim()) return [];
                 const search = passepartout1Search.toLowerCase();
                 return data.passepartout.filter(p =>
-                    String(p.article).toLowerCase().includes(search) || String(p.name).toLowerCase().includes(search)
+                    p.article.toLowerCase().includes(search) || p.name.toLowerCase().includes(search)
                 ).slice(0, 10);
             }, [passepartout1Search, data.passepartout]);
 
@@ -248,12 +219,12 @@
                 if (!passepartout2Search.trim()) return [];
                 const search = passepartout2Search.toLowerCase();
                 return data.passepartout.filter(p =>
-                    String(p.article).toLowerCase().includes(search) || String(p.name).toLowerCase().includes(search)
+                    p.article.toLowerCase().includes(search) || p.name.toLowerCase().includes(search)
                 ).slice(0, 10);
             }, [passepartout2Search, data.passepartout]);
 
             const calculations = useMemo(() => {
-                if (!width || !height) {
+                if (!selectedBaguette || !width || !height) {
                     return { total: 0, details: [], dimensions: null };
                 }
 
@@ -308,22 +279,17 @@
                     }
                 }
 
-                let outerWidth = innerWidth;
-                let outerHeight = innerHeight;
+                const outerWidth = innerWidth + selectedBaguette.additionalSize * 2;
+                const outerHeight = innerHeight + selectedBaguette.additionalSize * 2;
 
-                if (selectedBaguette) {
-                    outerWidth = innerWidth + selectedBaguette.additionalSize * 2;
-                    outerHeight = innerHeight + selectedBaguette.additionalSize * 2;
-
-                    const baguettePerimeter = ((outerWidth + outerHeight) * 2) / 1000;
-                    const baguetteCost = baguettePerimeter * selectedBaguette.pricePerMeter;
-                    total += baguetteCost;
-                    details.push({
-                        name: `Багет: ${selectedBaguette.article}`,
-                        value: `${baguettePerimeter.toFixed(3)} м × ${selectedBaguette.pricePerMeter} грн`,
-                        cost: baguetteCost
-                    });
-                }
+                const baguettePerimeter = ((outerWidth + outerHeight) * 2) / 1000;
+                const baguetteCost = baguettePerimeter * selectedBaguette.pricePerMeter;
+                total += baguetteCost;
+                details.push({
+                    name: `Багет: ${selectedBaguette.article}`,
+                    value: `${baguettePerimeter.toFixed(3)} м × ${selectedBaguette.pricePerMeter} грн`,
+                    cost: baguetteCost
+                });
 
                 const innerWallItem = data.components.innerWall.find(item => item.name === innerWall);
                 if (innerWallItem && innerWallItem.type !== 'none') {
@@ -441,7 +407,7 @@
 
                             {/* 1. Baguette */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Багет</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Багет *</label>
                                 <div className="relative">
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -478,17 +444,8 @@
                                     )}
                                 </div>
                                 {selectedBaguette && (
-                                    <div className="mt-2 flex items-center justify-between text-sm text-green-600">
-                                        <span>✓ Обрано: {selectedBaguette.article} ({selectedBaguette.pricePerMeter} грн/м)</span>
-                                        <button
-                                            onClick={() => {
-                                                setSelectedBaguette(null);
-                                                setBaguetteSearch('');
-                                            }}
-                                            className="text-red-500 hover:text-red-700"
-                                        >
-                                            <XIcon />
-                                        </button>
+                                    <div className="mt-2 text-sm text-green-600">
+                                        ✓ Обрано: {selectedBaguette.article} ({selectedBaguette.pricePerMeter} грн/м)
                                     </div>
                                 )}
                             </div>
@@ -592,17 +549,11 @@
                                                         >
                                                             <div className="font-medium text-gray-900">{item.article}</div>
                                                             <div className="text-sm text-gray-600">{item.name}</div>
-                                                            <div className="text-xs text-gray-500">{item.pricePerM2} грн/м²</div>
                                                         </button>
                                                     ))}
                                                 </div>
                                             )}
                                         </div>
-                                        {selectedPassepartout1 && (
-                                            <div className="text-xs text-green-600">
-                                                Ціна: {selectedPassepartout1.pricePerM2} грн/м²
-                                            </div>
-                                        )}
                                         <input
                                             type="number"
                                             value={passepartout1Field}
@@ -655,17 +606,11 @@
                                                             >
                                                                 <div className="font-medium text-gray-900">{item.article}</div>
                                                                 <div className="text-sm text-gray-600">{item.name}</div>
-                                                                <div className="text-xs text-gray-500">{item.pricePerM2} грн/м²</div>
                                                             </button>
                                                         ))}
                                                     </div>
                                                 )}
                                             </div>
-                                            {selectedPassepartout2 && (
-                                                <div className="text-xs text-green-600">
-                                                    Ціна: {selectedPassepartout2.pricePerM2} грн/м²
-                                                </div>
-                                            )}
                                             <input
                                                 type="number"
                                                 value={passepartout2Field}
@@ -679,114 +624,156 @@
                                     {!showPassepartout2 && (
                                         <button
                                             onClick={() => setShowPassepartout2(true)}
-                                            className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
                                         >
                                             <PlusIcon />
-                                            <span className="ml-1">Додати друге паспарту</span>
+                                            Додати друге паспарту
                                         </button>
                                     )}
                                 </div>
                             )}
 
-                            {/* 5. Components */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Внутрішня стінка</label>
-                                    <select
-                                        value={innerWall}
-                                        onChange={(e) => setInnerWall(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {data.components.innerWall.map(item => (
-                                            <option key={item.name} value={item.name}>{item.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Скло</label>
-                                    <select
-                                        value={glass}
-                                        onChange={(e) => setGlass(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {data.components.glass.map(item => (
-                                            <option key={item.name} value={item.name}>{item.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Задня стінка</label>
-                                    <select
-                                        value={backWall}
-                                        onChange={(e) => setBackWall(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {data.components.backWall.map(item => (
-                                            <option key={item.name} value={item.name}>{item.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Кріплення</label>
-                                    <select
-                                        value={mounting}
-                                        onChange={(e) => setMounting(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {data.components.mounting.map(item => (
-                                            <option key={item.name} value={item.name}>{item.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Робота</label>
-                                    <select
-                                        value={workType}
-                                        onChange={(e) => setWorkType(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {data.workTypes.map(item => (
-                                            <option key={item.name} value={item.name}>{item.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                            {/* 5. Inner Wall */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Внутрішня стінка</label>
+                                <select
+                                    value={innerWall}
+                                    onChange={(e) => setInnerWall(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {data.components.innerWall.map((item) => (
+                                        <option key={item.name} value={item.name}>{item.name}</option>
+                                    ))}
+                                </select>
                             </div>
 
-                            {/* Total */}
-                            <div className="mt-8 pt-6 border-t border-gray-200">
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="text-lg font-medium text-gray-900">Загальна вартість:</span>
-                                    <span className="text-3xl font-bold text-blue-600">{Math.ceil(calculations.total)} грн</span>
+                            {/* 6. Glass */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Скло</label>
+                                <select
+                                    value={glass}
+                                    onChange={(e) => setGlass(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {data.components.glass.map((item) => (
+                                        <option key={item.name} value={item.name}>{item.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* 7. Back Wall */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Задня стінка</label>
+                                <select
+                                    value={backWall}
+                                    onChange={(e) => setBackWall(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {data.components.backWall.map((item) => (
+                                        <option key={item.name} value={item.name}>{item.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* 8. Mounting */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Кріплення</label>
+                                <select
+                                    value={mounting}
+                                    onChange={(e) => setMounting(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {data.components.mounting.map((item) => (
+                                        <option key={item.name} value={item.name}>{item.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* 9. Work Type */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Тип роботи</label>
+                                <select
+                                    value={workType}
+                                    onChange={(e) => setWorkType(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {data.workTypes.map((item) => (
+                                        <option key={item.name} value={item.name}>{item.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {calculations.total > 0 && (
+                            <div className="bg-blue-50 rounded-lg shadow-sm p-6 mt-6 border-2 border-blue-200">
+                                <div className="text-center">
+                                    <div className="text-sm font-medium text-gray-600 mb-1">Загальна вартість</div>
+                                    <div className="text-4xl font-bold text-blue-600">
+                                        {calculations.total.toFixed(2)} грн
+                                    </div>
                                 </div>
 
-                                {calculations.details.length > 0 && (
-                                    <div className="bg-gray-50 rounded-md p-4 space-y-2">
-                                        <div className="text-sm font-medium text-gray-700 mb-2">Деталізація:</div>
-                                        {calculations.details.map((detail, index) => (
-                                            <div key={index} className="flex justify-between text-sm">
-                                                <span className="text-gray-600">{detail.name}</span>
-                                                <div className="text-right">
-                                                    <div className="text-gray-900">{Math.ceil(detail.cost)} грн</div>
-                                                    <div className="text-xs text-gray-500">{detail.value}</div>
+                                {SHOW_ITEM_PRICES && calculations.details.length > 0 && (
+                                    <div className="mt-6 pt-6 border-t border-blue-200">
+                                        <div className="text-sm font-medium text-gray-700 mb-3">Деталізація:</div>
+                                        <div className="space-y-2">
+                                            {calculations.details.map((detail, idx) => (
+                                                <div key={idx} className="flex justify-between text-sm">
+                                                    <span className="text-gray-600">{detail.name}</span>
+                                                    <span className="font-medium text-gray-900">{detail.cost.toFixed(2)} грн</span>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
+                        )}
 
+                        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-3">Інструкція з підключення Google Sheets</h2>
+                            <div className="text-sm text-gray-600 space-y-2">
+                                <p>1. Створіть Google Таблицю з такою структурою:</p>
+                                <div className="bg-gray-50 p-3 rounded-md font-mono text-xs space-y-2">
+                                    <div>
+                                        <strong>Вкладка "Багет":</strong><br />
+                                        Артикул | Модель | Колір | Ціна_за_метр | Ширина_профілю | Додатковий_розмір
+                                    </div>
+                                    <div>
+                                        <strong>Вкладка "Паспарту":</strong><br />
+                                        Артикул | Назва | Ціна_за_м2
+                                    </div>
+                                    <div>
+                                        <strong>Вкладка "Внутрішня_стінка":</strong><br />
+                                        Назва | Ціна_за_м2 | Ціна_за_метр | Тип
+                                    </div>
+                                    <div>
+                                        <strong>Вкладка "Скло":</strong><br />
+                                        Назва | Ціна_за_м2
+                                    </div>
+                                    <div>
+                                        <strong>Вкладка "Задня_стінка":</strong><br />
+                                        Назва | Ціна_за_м2
+                                    </div>
+                                    <div>
+                                        <strong>Вкладка "Кріплення":</strong><br />
+                                        Назва | Ціна
+                                    </div>
+                                    <div>
+                                        <strong>Вкладка "Роботи":</strong><br />
+                                        Назва | Ціна
+                                    </div>
+                                </div>
+                                <p>2. Зробіть таблицю публічною (Файл → Налаштування спільного доступу → Будь-хто з посиланням може переглядати)</p>
+                                <p>3. Скопіюйте URL таблиці та замініть у коді константу GOOGLE_SHEETS_ID</p>
+                                <p className="text-amber-600 font-medium">⚠️ Поки що калькулятор працює з тестовими даними, якщо не вдалося завантажити з Google Sheets</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<FrameCalculator />);
+        ReactDOM.render(<FrameCalculator />, document.getElementById('root'));
     </script>
 </body>
 
