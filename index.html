@@ -29,27 +29,24 @@
         // КОНФІГУРАЦІЯ
         // ============================================================================
 
-        const SHOW_ITEM_PRICES = false;
+        const SHOW_ITEM_PRICES = true;
         const GOOGLE_SHEETS_ID = '1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo';
 
         // ============================================================================
         // ЗАВАНТАЖЕННЯ ДАНИХ З GOOGLE SHEETS
         // ============================================================================
 
-        async function loadDataFromGoogleSheets(sheetId) {
+        // Завантаження багету (перший лист, gid=0)
+        async function loadBaguetteFromGoogleSheets(sheetId) {
             try {
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=0`;
                 const response = await fetch(url);
                 const text = await response.text();
-
-                // Парсимо відповідь (Google повертає JSONP)
                 const jsonText = text.substring(47).slice(0, -2);
                 const json = JSON.parse(jsonText);
-
                 const rows = json.table.rows;
                 const baguetteData = [];
 
-                // Пропускаємо перший рядок (заголовки)
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.c && row.c[0] && row.c[0].v) {
@@ -72,10 +69,42 @@
                         }
                     }
                 }
-
                 return baguetteData;
             } catch (error) {
-                console.error('Помилка завантаження даних:', error);
+                console.error('Помилка завантаження багету:', error);
+                return null;
+            }
+        }
+
+        // Завантаження паспарту (другий лист, gid=1808166835)
+        async function loadPassepartoutFromGoogleSheets(sheetId) {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1808166835`;
+                const response = await fetch(url);
+                const text = await response.text();
+                const jsonText = text.substring(47).slice(0, -2);
+                const json = JSON.parse(jsonText);
+                const rows = json.table.rows;
+                const passepartoutData = [];
+
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.c && row.c[0] && row.c[0].v) {
+                        const article = row.c[0]?.v || '';
+                        const pricePerM2 = parseFloat(row.c[1]?.v) || 0;
+
+                        if (article && pricePerM2 > 0) {
+                            passepartoutData.push({
+                                article,
+                                name: article, // Використовуємо артикул як назву
+                                pricePerM2
+                            });
+                        }
+                    }
+                }
+                return passepartoutData;
+            } catch (error) {
+                console.error('Помилка завантаження паспарту:', error);
                 return null;
             }
         }
@@ -92,9 +121,9 @@
                 { article: 'BK2020-001', model: 'BK2020', color: '001', pricePerMeter: 180, width: 35, additionalSize: 13 },
             ],
             passepartout: [
-                { article: 'P-001', name: 'Паспарту біле 1.5мм', pricePerM2: 80 },
-                { article: 'P-002', name: 'Паспарту чорне 2мм', pricePerM2: 95 },
-                { article: 'P-003', name: 'Паспарту кремове 1.5мм', pricePerM2: 85 },
+                { article: 'P-001', name: 'P-001', pricePerM2: 80 },
+                { article: 'P-002', name: 'P-002', pricePerM2: 95 },
+                { article: 'P-003', name: 'P-003', pricePerM2: 85 },
             ],
             components: {
                 innerWall: [
@@ -183,16 +212,38 @@
             useEffect(() => {
                 async function loadData() {
                     setLoading(true);
-                    const baguetteData = await loadDataFromGoogleSheets(GOOGLE_SHEETS_ID);
+                    
+                    const [baguetteData, passepartoutData] = await Promise.all([
+                        loadBaguetteFromGoogleSheets(GOOGLE_SHEETS_ID),
+                        loadPassepartoutFromGoogleSheets(GOOGLE_SHEETS_ID)
+                    ]);
+
+                    let hasError = false;
+                    const updates = {};
 
                     if (baguetteData && baguetteData.length > 0) {
+                        updates.baguette = baguetteData;
+                    } else {
+                        hasError = true;
+                    }
+
+                    if (passepartoutData && passepartoutData.length > 0) {
+                        updates.passepartout = passepartoutData;
+                    } else {
+                        hasError = true;
+                    }
+
+                    if (Object.keys(updates).length > 0) {
                         setData(prevData => ({
                             ...prevData,
-                            baguette: baguetteData
+                            ...updates
                         }));
-                        setError(null);
+                    }
+
+                    if (hasError) {
+                        setError('Не вдалося завантажити деякі дані. Використовуються тестові дані.');
                     } else {
-                        setError('Не вдалося завантажити дані. Використовуються тестові дані.');
+                        setError(null);
                     }
 
                     setLoading(false);
@@ -204,27 +255,28 @@
             const filteredBaguettes = useMemo(() => {
                 if (!baguetteSearch.trim()) return [];
                 const search = baguetteSearch.toLowerCase();
-                return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 10);
+                return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 20);
             }, [baguetteSearch, data.baguette]);
 
             const filteredPassepartout1 = useMemo(() => {
                 if (!passepartout1Search.trim()) return [];
                 const search = passepartout1Search.toLowerCase();
                 return data.passepartout.filter(p =>
-                    p.article.toLowerCase().includes(search) || p.name.toLowerCase().includes(search)
-                ).slice(0, 10);
+                    p.article.toLowerCase().includes(search)
+                ).slice(0, 20);
             }, [passepartout1Search, data.passepartout]);
 
             const filteredPassepartout2 = useMemo(() => {
                 if (!passepartout2Search.trim()) return [];
                 const search = passepartout2Search.toLowerCase();
                 return data.passepartout.filter(p =>
-                    p.article.toLowerCase().includes(search) || p.name.toLowerCase().includes(search)
-                ).slice(0, 10);
+                    p.article.toLowerCase().includes(search)
+                ).slice(0, 20);
             }, [passepartout2Search, data.passepartout]);
 
             const calculations = useMemo(() => {
-                if (!selectedBaguette || !width || !height) {
+                // БАГЕТ ТЕПЕР НЕ ОБОВ'ЯЗКОВИЙ - перевіряємо тільки розміри
+                if (!width || !height) {
                     return { total: 0, details: [], dimensions: null };
                 }
 
@@ -240,6 +292,7 @@
                 let innerWidth = w;
                 let innerHeight = h;
 
+                // Розрахунок паспарту
                 if (withPassepartout && selectedPassepartout1 && passepartout1Field) {
                     const field1 = parseFloat(passepartout1Field);
                     if (!isNaN(field1) && field1 > 0) {
@@ -256,7 +309,7 @@
                                 const p2Cost = p2Area * selectedPassepartout2.pricePerM2;
                                 total += p2Cost;
                                 details.push({
-                                    name: `Паспарту (верхнє): ${selectedPassepartout2.name}`,
+                                    name: `Паспарту (верхнє): ${selectedPassepartout2.article}`,
                                     value: `${p2Area.toFixed(4)} м² × ${selectedPassepartout2.pricePerM2} грн`,
                                     cost: p2Cost
                                 });
@@ -269,7 +322,7 @@
                         const p1Cost = p1Area * selectedPassepartout1.pricePerM2;
                         total += p1Cost;
                         details.push({
-                            name: `Паспарту (нижнє): ${selectedPassepartout1.name}`,
+                            name: `Паспарту (нижнє): ${selectedPassepartout1.article}`,
                             value: `${p1Area.toFixed(4)} м² × ${selectedPassepartout1.pricePerM2} грн`,
                             cost: p1Cost
                         });
@@ -279,18 +332,25 @@
                     }
                 }
 
-                const outerWidth = innerWidth + selectedBaguette.additionalSize * 2;
-                const outerHeight = innerHeight + selectedBaguette.additionalSize * 2;
+                // Розрахунок багету (тепер опціонально)
+                let outerWidth = innerWidth;
+                let outerHeight = innerHeight;
 
-                const baguettePerimeter = ((outerWidth + outerHeight) * 2) / 1000;
-                const baguetteCost = baguettePerimeter * selectedBaguette.pricePerMeter;
-                total += baguetteCost;
-                details.push({
-                    name: `Багет: ${selectedBaguette.article}`,
-                    value: `${baguettePerimeter.toFixed(3)} м × ${selectedBaguette.pricePerMeter} грн`,
-                    cost: baguetteCost
-                });
+                if (selectedBaguette) {
+                    outerWidth = innerWidth + selectedBaguette.additionalSize * 2;
+                    outerHeight = innerHeight + selectedBaguette.additionalSize * 2;
 
+                    const baguettePerimeter = ((outerWidth + outerHeight) * 2) / 1000;
+                    const baguetteCost = baguettePerimeter * selectedBaguette.pricePerMeter;
+                    total += baguetteCost;
+                    details.push({
+                        name: `Багет: ${selectedBaguette.article}`,
+                        value: `${baguettePerimeter.toFixed(3)} м × ${selectedBaguette.pricePerMeter} грн`,
+                        cost: baguetteCost
+                    });
+                }
+
+                // Внутрішня стінка
                 const innerWallItem = data.components.innerWall.find(item => item.name === innerWall);
                 if (innerWallItem && innerWallItem.type !== 'none') {
                     const innerArea = (innerWidth * innerHeight) / 1000000;
@@ -326,6 +386,7 @@
                     }
                 }
 
+                // Скло
                 const glassItem = data.components.glass.find(item => item.name === glass);
                 if (glassItem && glassItem.pricePerM2 > 0) {
                     const glassArea = (innerWidth * innerHeight) / 1000000;
@@ -338,20 +399,24 @@
                     });
                 }
 
-                const backWallItem = data.components.backWall.find(item => item.name === backWall);
-                if (backWallItem && backWallItem.pricePerM2 > 0) {
-                    const backWidth = (outerWidth - 3) / 1000;
-                    const backHeight = (outerHeight - 3) / 1000;
-                    const backArea = backWidth * backHeight;
-                    const backCost = backArea * backWallItem.pricePerM2;
-                    total += backCost;
-                    details.push({
-                        name: `Задня стінка: ${backWall}`,
-                        value: `${backArea.toFixed(4)} м² × ${backWallItem.pricePerM2} грн`,
-                        cost: backCost
-                    });
+                // Задня стінка (тільки якщо є багет)
+                if (selectedBaguette) {
+                    const backWallItem = data.components.backWall.find(item => item.name === backWall);
+                    if (backWallItem && backWallItem.pricePerM2 > 0) {
+                        const backWidth = (outerWidth - 3) / 1000;
+                        const backHeight = (outerHeight - 3) / 1000;
+                        const backArea = backWidth * backHeight;
+                        const backCost = backArea * backWallItem.pricePerM2;
+                        total += backCost;
+                        details.push({
+                            name: `Задня стінка: ${backWall}`,
+                            value: `${backArea.toFixed(4)} м² × ${backWallItem.pricePerM2} грн`,
+                            cost: backCost
+                        });
+                    }
                 }
 
+                // Кріплення
                 const mountingItem = data.components.mounting.find(item => item.name === mounting);
                 if (mountingItem && mountingItem.price > 0) {
                     total += mountingItem.price;
@@ -362,6 +427,7 @@
                     });
                 }
 
+                // Тип роботи
                 const workTypeItem = data.workTypes.find(item => item.name === workType);
                 if (workTypeItem) {
                     total += workTypeItem.price;
@@ -375,16 +441,16 @@
                 return {
                     total,
                     details,
-                    dimensions: {
+                    dimensions: selectedBaguette ? {
                         width: outerWidth,
                         height: outerHeight
-                    }
+                    } : null
                 };
             }, [selectedBaguette, width, height, withPassepartout, selectedPassepartout1, passepartout1Field,
                 showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
 
             return (
-                <div className="min-h-screen bg-gray-50 p-6">
+			<div className="min-h-screen bg-gray-50 p-6">
                     <div className="max-w-3xl mx-auto">
                         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                             <h1 className="text-2xl font-semibold text-gray-900">Калькулятор вартості рамок</h1>
@@ -405,9 +471,9 @@
 
                         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
 
-                            {/* 1. Baguette */}
+                            {/* 1. Baguette - ТЕПЕР НЕ ОБОВ'ЯЗКОВЕ */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Багет *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Багет</label>
                                 <div className="relative">
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -548,12 +614,17 @@
                                                             className="w-full px-4 py-2 text-left hover:bg-gray-100"
                                                         >
                                                             <div className="font-medium text-gray-900">{item.article}</div>
-                                                            <div className="text-sm text-gray-600">{item.name}</div>
+                                                            <div className="text-sm text-gray-600">{item.pricePerM2} грн/м²</div>
                                                         </button>
                                                     ))}
                                                 </div>
                                             )}
                                         </div>
+                                        {selectedPassepartout1 && (
+                                            <div className="text-sm text-green-600">
+                                                ✓ Обрано: {selectedPassepartout1.article} ({selectedPassepartout1.pricePerM2} грн/м²)
+                                            </div>
+                                        )}
                                         <input
                                             type="number"
                                             value={passepartout1Field}
@@ -605,12 +676,17 @@
                                                                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
                                                             >
                                                                 <div className="font-medium text-gray-900">{item.article}</div>
-                                                                <div className="text-sm text-gray-600">{item.name}</div>
+                                                                <div className="text-sm text-gray-600">{item.pricePerM2} грн/м²</div>
                                                             </button>
                                                         ))}
                                                     </div>
                                                 )}
                                             </div>
+                                            {selectedPassepartout2 && (
+                                                <div className="text-sm text-green-600">
+                                                    ✓ Обрано: {selectedPassepartout2.article} ({selectedPassepartout2.pricePerM2} грн/м²)
+                                                </div>
+                                            )}
                                             <input
                                                 type="number"
                                                 value={passepartout2Field}
@@ -735,12 +811,12 @@
                                 <p>1. Створіть Google Таблицю з такою структурою:</p>
                                 <div className="bg-gray-50 p-3 rounded-md font-mono text-xs space-y-2">
                                     <div>
-                                        <strong>Вкладка "Багет":</strong><br />
+                                        <strong>Вкладка "Багет" (gid=0):</strong><br />
                                         Артикул | Модель | Колір | Ціна_за_метр | Ширина_профілю | Додатковий_розмір
                                     </div>
                                     <div>
-                                        <strong>Вкладка "Паспарту":</strong><br />
-                                        Артикул | Назва | Ціна_за_м2
+                                        <strong>Вкладка "Паспарту" (gid=1808166835):</strong><br />
+                                        Артикул | Ціна_за_м2
                                     </div>
                                     <div>
                                         <strong>Вкладка "Внутрішня_стінка":</strong><br />
