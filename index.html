@@ -259,20 +259,20 @@
             }, [baguetteSearch, data.baguette]);
 
             const filteredPassepartout1 = useMemo(() => {
-                if (!passepartout1Search.trim()) return [];
-                const search = passepartout1Search.toLowerCase();
-                return data.passepartout.filter(p =>
-                    p.article.toLowerCase().includes(search)
-                ).slice(0, 20);
-            }, [passepartout1Search, data.passepartout]);
+				if (!passepartout1Search.trim()) return [];
+				const search = passepartout1Search.toLowerCase();
+				return data.passepartout.filter(p =>
+					String(p.article).toLowerCase().includes(search)
+				).slice(0, 20);
+			}, [passepartout1Search, data.passepartout]);
 
-            const filteredPassepartout2 = useMemo(() => {
-                if (!passepartout2Search.trim()) return [];
-                const search = passepartout2Search.toLowerCase();
-                return data.passepartout.filter(p =>
-                    p.article.toLowerCase().includes(search)
-                ).slice(0, 20);
-            }, [passepartout2Search, data.passepartout]);
+			const filteredPassepartout2 = useMemo(() => {
+				if (!passepartout2Search.trim()) return [];
+				const search = passepartout2Search.toLowerCase();
+				return data.passepartout.filter(p =>
+					String(p.article).toLowerCase().includes(search)
+				).slice(0, 20);
+			}, [passepartout2Search, data.passepartout]);
 
             const calculations = useMemo(() => {
                 // БАГЕТ ТЕПЕР НЕ ОБОВ'ЯЗКОВИЙ - перевіряємо тільки розміри
