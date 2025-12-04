@@ -297,44 +297,48 @@
                 let innerHeight = h;
 
                 // Розрахунок паспарту
-                if (withPassepartout && selectedPassepartout1 && passepartout1Field) {
-                    const field1 = parseFloat(passepartout1Field);
-                    if (!isNaN(field1) && field1 > 0) {
-                        let field1Actual = field1;
+				if (withPassepartout && selectedPassepartout1 && passepartout1Field) {
+					const field1 = parseFloat(passepartout1Field);
+					if (!isNaN(field1) && field1 > 0) {
+						let totalField = field1; // Загальна сума полів
 
-                        if (showPassepartout2 && selectedPassepartout2 && passepartout2Field) {
-                            const field2 = parseFloat(passepartout2Field);
-                            if (!isNaN(field2) && field2 > 0) {
-                                field1Actual = field1 + field2;
+						// Якщо є друге паспарту - додаємо його поле
+						if (showPassepartout2 && selectedPassepartout2 && passepartout2Field) {
+							const field2 = parseFloat(passepartout2Field);
+							if (!isNaN(field2) && field2 > 0) {
+								totalField = field1 + field2;
 
-                                const p2Width = (w + field2 * 2) / 1000;
-                                const p2Height = (h + field2 * 2) / 1000;
-                                const p2Area = p2Width * p2Height;
-                                const p2Cost = p2Area * selectedPassepartout2.pricePerM2;
-                                total += p2Cost;
-                                details.push({
-                                    name: `Паспарту (верхнє): ${selectedPassepartout2.article}`,
-                                    value: `${p2Area.toFixed(4)} м² × ${selectedPassepartout2.pricePerM2} грн`,
-                                    cost: p2Cost
-                                });
-                            }
-                        }
+								// Розраховуємо верхнє паспарту з ЗАГАЛЬНИМИ розмірами
+								const p2Width = (w + totalField * 2) / 1000;
+								const p2Height = (h + totalField * 2) / 1000;
+								const p2Area = p2Width * p2Height;
+								const p2Cost = p2Area * selectedPassepartout2.pricePerM2;
+								total += p2Cost;
+								details.push({
+									name: `Паспарту (верхнє): ${selectedPassepartout2.article}`,
+									value: `${p2Area.toFixed(4)} м² × ${selectedPassepartout2.pricePerM2} грн`,
+									cost: p2Cost
+								});
+							}
+						}
 
-                        const p1Width = (w + field1Actual * 2) / 1000;
-                        const p1Height = (h + field1Actual * 2) / 1000;
-                        const p1Area = p1Width * p1Height;
-                        const p1Cost = p1Area * selectedPassepartout1.pricePerM2;
-                        total += p1Cost;
-                        details.push({
-                            name: `Паспарту (нижнє): ${selectedPassepartout1.article}`,
-                            value: `${p1Area.toFixed(4)} м² × ${selectedPassepartout1.pricePerM2} грн`,
-                            cost: p1Cost
-                        });
+						// Розраховуємо нижнє паспарту з ЗАГАЛЬНИМИ розмірами
+						const p1Width = (w + totalField * 2) / 1000;
+						const p1Height = (h + totalField * 2) / 1000;
+						const p1Area = p1Width * p1Height;
+						const p1Cost = p1Area * selectedPassepartout1.pricePerM2;
+						total += p1Cost;
+						details.push({
+							name: `Паспарту (нижнє): ${selectedPassepartout1.article}`,
+							value: `${p1Area.toFixed(4)} м² × ${selectedPassepartout1.pricePerM2} грн`,
+							cost: p1Cost
+						});
 
-                        innerWidth = w + field1Actual * 2;
-                        innerHeight = h + field1Actual * 2;
-                    }
-                }
+						// Внутрішній розмір рамки = зовнішній розмір паспарту
+						innerWidth = w + totalField * 2;
+						innerHeight = h + totalField * 2;
+					}
+				}
 
                 // Розрахунок багету (тепер опціонально)
                 let outerWidth = innerWidth;
