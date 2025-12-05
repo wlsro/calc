@@ -112,6 +112,170 @@
 				return null;
 			}
 		}
+		
+		// Завантаження внутрішньої стінки (gid=1833771588)
+		async function loadInnerWallFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1833771588`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const innerWallData = [];
+
+				for (let i = 1; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const name = String(row.c[0]?.v || '');
+						const pricePerM2 = parseFloat(row.c[1]?.v) || 0;
+						const pricePerMeter = parseFloat(row.c[2]?.v) || 0;
+						const type = String(row.c[3]?.v || 'none');
+
+						if (name) {
+							innerWallData.push({
+								name: name,
+								pricePerM2: pricePerM2,
+								pricePerMeter: pricePerMeter,
+								type: type
+							});
+						}
+					}
+				}
+				return innerWallData;
+			} catch (error) {
+				console.error('Помилка завантаження внутрішньої стінки:', error);
+				return null;
+			}
+		}
+
+		// Завантаження скла (gid=689770482)
+		async function loadGlassFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=689770482`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const glassData = [];
+
+				for (let i = 1; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const name = String(row.c[0]?.v || '');
+						const pricePerM2 = parseFloat(row.c[1]?.v) || 0;
+
+						if (name) {
+							glassData.push({
+								name: name,
+								pricePerM2: pricePerM2
+							});
+						}
+					}
+				}
+				return glassData;
+			} catch (error) {
+				console.error('Помилка завантаження скла:', error);
+				return null;
+			}
+		}
+
+		// Завантаження задньої стінки (gid=1162047138)
+		async function loadBackWallFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1162047138`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const backWallData = [];
+
+				for (let i = 1; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const name = String(row.c[0]?.v || '');
+						const pricePerM2 = parseFloat(row.c[1]?.v) || 0;
+
+						if (name) {
+							backWallData.push({
+								name: name,
+								pricePerM2: pricePerM2
+							});
+						}
+					}
+				}
+				return backWallData;
+			} catch (error) {
+				console.error('Помилка завантаження задньої стінки:', error);
+				return null;
+			}
+		}
+
+		// Завантаження кріплення (gid=1862586855)
+		async function loadMountingFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1862586855`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const mountingData = [];
+
+				for (let i = 1; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const name = String(row.c[0]?.v || '');
+						const price = parseFloat(row.c[1]?.v) || 0;
+
+						if (name) {
+							mountingData.push({
+								name: name,
+								price: price
+							});
+						}
+					}
+				}
+				return mountingData;
+			} catch (error) {
+				console.error('Помилка завантаження кріплення:', error);
+				return null;
+			}
+		}
+
+		// Завантаження типів роботи (gid=386108044)
+		async function loadWorkTypesFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=386108044`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const workTypesData = [];
+
+				for (let i = 1; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const name = String(row.c[0]?.v || '');
+						const price = parseFloat(row.c[1]?.v) || 0;
+
+						if (name) {
+							workTypesData.push({
+								name: name,
+								price: price
+							});
+						}
+					}
+				}
+				return workTypesData;
+			} catch (error) {
+				console.error('Помилка завантаження типів роботи:', error);
+				return null;
+			}
+		}
 
         // ============================================================================
         // ТЕСТОВІ ДАНІ
@@ -212,49 +376,84 @@
             const [mounting, setMounting] = useState(data.components.mounting[0].name);
             const [workType, setWorkType] = useState(data.workTypes[0].name);
 
-            // Завантажуємо дані з Google Sheets при монтуванні компонента
-            useEffect(() => {
-                async function loadData() {
-                    setLoading(true);
-                    
-                    const [baguetteData, passepartoutData] = await Promise.all([
-                        loadBaguetteFromGoogleSheets(GOOGLE_SHEETS_ID),
-                        loadPassepartoutFromGoogleSheets(GOOGLE_SHEETS_ID)
-                    ]);
+			// Завантажуємо дані з Google Sheets при монтуванні компонента
+			useEffect(() => {
+				async function loadData() {
+					setLoading(true);
+					
+					const [baguetteData, passepartoutData, innerWallData, glassData, backWallData, mountingData, workTypesData] = await Promise.all([
+						loadBaguetteFromGoogleSheets(GOOGLE_SHEETS_ID),
+						loadPassepartoutFromGoogleSheets(GOOGLE_SHEETS_ID),
+						loadInnerWallFromGoogleSheets(GOOGLE_SHEETS_ID),
+						loadGlassFromGoogleSheets(GOOGLE_SHEETS_ID),
+						loadBackWallFromGoogleSheets(GOOGLE_SHEETS_ID),
+						loadMountingFromGoogleSheets(GOOGLE_SHEETS_ID),
+						loadWorkTypesFromGoogleSheets(GOOGLE_SHEETS_ID)
+					]);
 
-                    let hasError = false;
-                    const updates = {};
+					const updates = {};
+					let hasError = false;
 
-                    if (baguetteData && baguetteData.length > 0) {
-                        updates.baguette = baguetteData;
-                    } else {
-                        hasError = true;
-                    }
+					if (baguetteData && baguetteData.length > 0) {
+						updates.baguette = baguetteData;
+					} else {
+						hasError = true;
+					}
 
-                    if (passepartoutData && passepartoutData.length > 0) {
-                        updates.passepartout = passepartoutData;
-                    } else {
-                        hasError = true;
-                    }
+					if (passepartoutData && passepartoutData.length > 0) {
+						updates.passepartout = passepartoutData;
+					} else {
+						hasError = true;
+					}
 
-                    if (Object.keys(updates).length > 0) {
-                        setData(prevData => ({
-                            ...prevData,
-                            ...updates
-                        }));
-                    }
+					if (innerWallData && innerWallData.length > 0) {
+						updates.components = { ...MOCK_DATA.components, innerWall: innerWallData };
+					} else {
+						hasError = true;
+					}
 
-                    if (hasError) {
-                        setError('Не вдалося завантажити деякі дані. Використовуються тестові дані.');
-                    } else {
-                        setError(null);
-                    }
+					if (glassData && glassData.length > 0) {
+						updates.components = { ...updates.components || MOCK_DATA.components, glass: glassData };
+					} else {
+						hasError = true;
+					}
 
-                    setLoading(false);
-                }
+					if (backWallData && backWallData.length > 0) {
+						updates.components = { ...updates.components || MOCK_DATA.components, backWall: backWallData };
+					} else {
+						hasError = true;
+					}
 
-                loadData();
-            }, []);
+					if (mountingData && mountingData.length > 0) {
+						updates.components = { ...updates.components || MOCK_DATA.components, mounting: mountingData };
+					} else {
+						hasError = true;
+					}
+
+					if (workTypesData && workTypesData.length > 0) {
+						updates.workTypes = workTypesData;
+					} else {
+						hasError = true;
+					}
+
+					if (Object.keys(updates).length > 0) {
+						setData(prevData => ({
+							...prevData,
+							...updates
+						}));
+					}
+
+					if (hasError) {
+						setError('Не вдалося завантажити деякі дані. Використовуються тестові дані.');
+					} else {
+						setError(null);
+					}
+
+					setLoading(false);
+				}
+
+				loadData();
+			}, []);
 
             const filteredBaguettes = useMemo(() => {
                 if (!baguetteSearch.trim()) return [];
