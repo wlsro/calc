@@ -87,7 +87,7 @@
 				const rows = json.table.rows;
 				const passepartoutData = [];
 
-				for (let i = 1; i < rows.length; i++) {
+				for (let i = 0; i < rows.length; i++) {
 					const row = rows[i];
 					if (row.c && row.c[0] && row.c[0].v) {
 						const article = String(row.c[0]?.v || ''); // Перетворюємо на рядок
@@ -124,7 +124,7 @@
 				const rows = json.table.rows;
 				const innerWallData = [];
 
-				for (let i = 1; i < rows.length; i++) {
+				for (let i = 0; i < rows.length; i++) {
 					const row = rows[i];
 					if (row.c && row.c[0] && row.c[0].v) {
 						const name = String(row.c[0]?.v || '');
@@ -160,7 +160,7 @@
 				const rows = json.table.rows;
 				const glassData = [];
 
-				for (let i = 1; i < rows.length; i++) {
+				for (let i = 0; i < rows.length; i++) {
 					const row = rows[i];
 					if (row.c && row.c[0] && row.c[0].v) {
 						const name = String(row.c[0]?.v || '');
@@ -192,7 +192,7 @@
 				const rows = json.table.rows;
 				const backWallData = [];
 
-				for (let i = 1; i < rows.length; i++) {
+				for (let i = 0; i < rows.length; i++) {
 					const row = rows[i];
 					if (row.c && row.c[0] && row.c[0].v) {
 						const name = String(row.c[0]?.v || '');
@@ -224,7 +224,7 @@
 				const rows = json.table.rows;
 				const mountingData = [];
 
-				for (let i = 1; i < rows.length; i++) {
+				for (let i = 0; i < rows.length; i++) {
 					const row = rows[i];
 					if (row.c && row.c[0] && row.c[0].v) {
 						const name = String(row.c[0]?.v || '');
@@ -256,7 +256,7 @@
 				const rows = json.table.rows;
 				const workTypesData = [];
 
-				for (let i = 1; i < rows.length; i++) {
+				for (let i = 0; i < rows.length; i++) {
 					const row = rows[i];
 					if (row.c && row.c[0] && row.c[0].v) {
 						const name = String(row.c[0]?.v || '');
@@ -370,11 +370,11 @@
             const [selectedPassepartout2, setSelectedPassepartout2] = useState(null);
             const [passepartout2Field, setPassepartout2Field] = useState('');
 
-            const [innerWall, setInnerWall] = useState(data.components.innerWall[0].name);
-            const [glass, setGlass] = useState(data.components.glass[0].name);
-            const [backWall, setBackWall] = useState(data.components.backWall[0].name);
-            const [mounting, setMounting] = useState(data.components.mounting[0].name);
-            const [workType, setWorkType] = useState(data.workTypes[0].name);
+            const [innerWall, setInnerWall] = useState('');
+			const [glass, setGlass] = useState('');
+			const [backWall, setBackWall] = useState('');
+			const [mounting, setMounting] = useState('');
+			const [workType, setWorkType] = useState('');
 
 			// Завантажуємо дані з Google Sheets при монтуванні компонента
 			useEffect(() => {
@@ -450,6 +450,23 @@
 					}
 
 					setLoading(false);
+					
+				        // Встановлюємо дефолтні значення після завантаження
+					if (innerWallData && innerWallData.length > 0) {
+						setInnerWall(innerWallData[0].name);
+					}
+					if (glassData && glassData.length > 0) {
+						setGlass(glassData[0].name);
+					}
+					if (backWallData && backWallData.length > 0) {
+						setBackWall(backWallData[0].name);
+					}
+					if (mountingData && mountingData.length > 0) {
+						setMounting(mountingData[0].name);
+					}
+					if (workTypesData && workTypesData.length > 0) {
+						setWorkType(workTypesData[0].name);
+					}
 				}
 
 				loadData();
