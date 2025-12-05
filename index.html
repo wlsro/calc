@@ -47,7 +47,7 @@
                 const rows = json.table.rows;
                 const baguetteData = [];
 
-                for (let i = 1; i < rows.length; i++) {
+                for (let i = 0; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.c && row.c[0] && row.c[0].v) {
                         const article = row.c[0]?.v || '';
