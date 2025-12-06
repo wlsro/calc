@@ -623,22 +623,30 @@
                     });
                 }
 
-                // Задня стінка (тільки якщо є багет)
-                if (selectedBaguette) {
-                    const backWallItem = data.components.backWall.find(item => item.name === backWall);
-                    if (backWallItem && backWallItem.pricePerM2 > 0) {
-                        const backWidth = (outerWidth - 3) / 1000;
-                        const backHeight = (outerHeight - 3) / 1000;
-                        const backArea = backWidth * backHeight;
-                        const backCost = backArea * backWallItem.pricePerM2;
-                        total += backCost;
-                        details.push({
-                            name: `Задня стінка: ${backWall}`,
-                            value: `${backArea.toFixed(4)} м² × ${backWallItem.pricePerM2} грн`,
-                            cost: backCost
-                        });
-                    }
-                }
+                // Задня стінка
+				const backWallItem = data.components.backWall.find(item => item.name === backWall);
+				if (backWallItem && backWallItem.pricePerM2 > 0) {
+					let backWidth, backHeight;
+					
+					if (selectedBaguette) {
+						// Якщо є багет - рахуємо від зовнішнього розміру рамки -3мм
+						backWidth = (outerWidth - 3) / 1000;
+						backHeight = (outerHeight - 3) / 1000;
+					} else {
+						// Якщо немає багету - рахуємо від внутрішнього розміру (ДВП/паспарту)
+						backWidth = innerWidth / 1000;
+						backHeight = innerHeight / 1000;
+					}
+					
+					const backArea = backWidth * backHeight;
+					const backCost = backArea * backWallItem.pricePerM2;
+					total += backCost;
+					details.push({
+						name: `Задня стінка: ${backWall}`,
+						value: `${backArea.toFixed(4)} м² × ${backWallItem.pricePerM2} грн`,
+						cost: backCost
+					});
+				}
 
                 // Кріплення
                 const mountingItem = data.components.mounting.find(item => item.name === mounting);
