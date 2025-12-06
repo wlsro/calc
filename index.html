@@ -1046,13 +1046,62 @@
                         </div>
 
                         {calculations.total > 0 && (
-                            <div className="bg-blue-50 rounded-lg shadow-sm p-6 mt-6 border-2 border-blue-200">
-                                <div className="text-center">
-                                    <div className="text-sm font-medium text-gray-600 mb-1">Загальна вартість</div>
-                                    <div className="text-4xl font-bold text-blue-600">
-                                        {calculations.total.toFixed(2)} грн
-                                    </div>
-                                </div>
+							<div className="bg-green-50 rounded-lg shadow-sm p-6 mt-6 border-2 border-green-200">
+								{/* Десктоп: 3 колонки в ряд */}
+								<div className="hidden md:grid md:grid-cols-3 gap-6 mb-6">
+									{/* Загальна вартість - зліва */}
+									<div className="text-center">
+										<div className="text-sm font-medium text-gray-600 mb-1">Загальна вартість</div>
+										<div className="text-3xl font-bold text-green-600">
+											{calculations.total.toFixed(2)} грн
+										</div>
+									</div>
+									
+									{/* Заробіток продавця - по центру */}
+									<div className="text-center">
+										<div className="text-sm font-medium text-gray-600 mb-1">Заробіток продавця</div>
+										<div className="text-3xl font-bold text-gray-900">
+											{(calculations.total * 0.25).toFixed(2)} грн
+										</div>
+									</div>
+									
+									{/* Ціна майстерні - зправа */}
+									<div className="text-center">
+										<div className="text-sm font-medium text-gray-600 mb-1">Ціна майстерні</div>
+										<div className="text-3xl font-bold text-red-600">
+											{(calculations.total * 0.75).toFixed(2)} грн
+										</div>
+									</div>
+								</div>
+
+								{/* Мобільний: 2 в ряд + 1 під ними */}
+								<div className="md:hidden space-y-4 mb-6">
+									<div className="grid grid-cols-2 gap-4">
+										{/* Загальна вартість - зліва */}
+										<div className="text-center">
+											<div className="text-xs font-medium text-gray-600 mb-1">Загальна вартість</div>
+											<div className="text-2xl font-bold text-green-600">
+												{calculations.total.toFixed(2)} грн
+											</div>
+										</div>
+										
+										{/* Ціна майстерні - зправа */}
+										<div className="text-center">
+											<div className="text-xs font-medium text-gray-600 mb-1">Ціна майстерні</div>
+											<div className="text-2xl font-bold text-red-600">
+												{(calculations.total * 0.75).toFixed(2)} грн
+											</div>
+										</div>
+									</div>
+									
+									{/* Заробіток продавця - по центру внизу */}
+									<div className="text-center">
+										<div className="text-xs font-medium text-gray-600 mb-1">Заробіток продавця</div>
+										<div className="text-2xl font-bold text-gray-900">
+											{(calculations.total * 0.25).toFixed(2)} грн
+										</div>
+									</div>
+								</div>
 
                                 {SHOW_ITEM_PRICES && calculations.details.length > 0 && (
                                     <div className="mt-6 pt-6 border-t border-blue-200">
