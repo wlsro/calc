@@ -671,19 +671,41 @@
                 }
 
                 return {
-                    total,
-                    details,
-                    dimensions: selectedBaguette ? {
-                        width: outerWidth,
-                        height: outerHeight
-                    } : null
-                };
+					total,
+					details,
+					dimensions: selectedBaguette ? {
+						width: outerWidth,
+						height: outerHeight
+					} : null,
+					innerDimensions: {
+						width: innerWidth,
+						height: innerHeight,
+						area: (innerWidth * innerHeight) / 1000000, // м²
+						perimeter: ((innerWidth + innerHeight) * 2) / 1000 // пог.м
+					}
+				};
             }, [selectedBaguette, width, height, withPassepartout, selectedPassepartout1, passepartout1Field,
                 showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
 
             return (
 			<div className="min-h-screen bg-gray-50 p-4">
                     <div className="max-w-3xl mx-auto">
+					
+						{/* HEADER */}
+						<header className="bg-white rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between">
+							<div className="flex items-center gap-4">
+								<img 
+									src="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/logo.png" 
+									alt="Логотип" 
+									className="h-12 w-auto"
+								/>
+								<div>
+									<h1 className="text-xl font-bold text-gray-900">Назва вашої майстерні</h1>
+									<p className="text-sm text-gray-600">Професійне оформлення</p>
+								</div>
+							</div>
+						</header>
+					
                         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                             <h1 className="text-2xl font-semibold text-gray-900">Калькулятор вартості рамок</h1>
                             <p className="text-sm text-gray-600 mt-1">Розрахунок вартості оформлення фото та вишивок</p>
@@ -973,6 +995,32 @@
                                     )}
                                 </div>
                             )}
+							
+							{/* Inner Dimensions Display - НОВИЙ БЛОК */}
+								{calculations.innerDimensions && (
+									<div className="bg-blue-50 p-3 rounded-md border border-blue-200 text-sm">
+										<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+											<div>
+												<span className="text-gray-600">Внутрішній розмір: </span>
+												<span className="font-semibold text-gray-900">
+													{Math.round(calculations.innerDimensions.width)} x {Math.round(calculations.innerDimensions.height)} мм
+												</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Площа: </span>
+												<span className="font-semibold text-gray-900">
+													{calculations.innerDimensions.area.toFixed(4)} м²
+												</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Периметр: </span>
+												<span className="font-semibold text-gray-900">
+													{calculations.innerDimensions.perimeter.toFixed(3)} м
+												</span>
+											</div>
+										</div>
+									</div>
+								)}
 
                             {/* 5. Inner Wall */}
                             <div>
@@ -1118,6 +1166,31 @@
                                 )}
                             </div>
                         )}
+						
+						{/* FOOTER */}
+						<footer className="bg-white rounded-lg shadow-sm p-6 mt-6">
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+								<div>
+									<h3 className="font-semibold text-gray-900 mb-2">Контакти</h3>
+									<p className="text-sm text-gray-600">📞 +380 XX XXX XX XX</p>
+									<p className="text-sm text-gray-600">✉️ email@example.com</p>
+								</div>
+								<div>
+									<h3 className="font-semibold text-gray-900 mb-2">Адреса</h3>
+									<p className="text-sm text-gray-600">м. Київ</p>
+									<p className="text-sm text-gray-600">вул. Прикладна, 1</p>
+								</div>
+								<div>
+									<h3 className="font-semibold text-gray-900 mb-2">Графік роботи</h3>
+									<p className="text-sm text-gray-600">Пн-Пт: 9:00 - 18:00</p>
+									<p className="text-sm text-gray-600">Сб-Нд: вихідний</p>
+								</div>
+							</div>
+							<div className="mt-4 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
+								© 2024 Назва майстерні. Всі права захищені.
+							</div>
+						</footer>
+						
                     </div>
                 </div>
             );
