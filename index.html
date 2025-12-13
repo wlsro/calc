@@ -688,14 +688,14 @@
                 showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
 
             return (
-			<div className="min-h-screen bg-gray-50 p-4">
-                    <div className="max-w-3xl mx-auto">
-					
-						{/* HEADER */}
-						<header className="bg-white rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between">
+			<div className="min-h-screen bg-gray-50">
+			
+				    {/* HEADER - на всю ширину */}
+					<header className="bg-white shadow-sm border-b border-gray-200">
+						<div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 							<div className="flex items-center gap-4">
 								<img 
-									src="https://raw.githubusercontent.com/wlsro/calc/804362d9c5096c8c6704a0e5f12006c81e280086/logo.webp" 
+									src="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/logo.png" 
 									alt="Логотип" 
 									className="h-12 w-auto"
 								/>
@@ -704,7 +704,10 @@
 									<p className="text-sm text-gray-600">Професійне оформлення</p>
 								</div>
 							</div>
-						</header>
+						</div>
+					</header>
+			
+                    <div className="max-w-3xl mx-auto p-4 py-4">					
 					
                         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                             <h1 className="text-2xl font-semibold text-gray-900">Калькулятор вартості рамок</h1>
@@ -1167,27 +1170,29 @@
                             </div>
                         )}
 						
-						{/* FOOTER */}
-						<footer className="bg-white rounded-lg shadow-sm p-6 mt-6">
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-								<div>
-									<h3 className="font-semibold text-gray-900 mb-2">Контакти</h3>
-									<p className="text-sm text-gray-600">📞 +380 XX XXX XX XX</p>
-									<p className="text-sm text-gray-600">✉️ email@example.com</p>
+						{/* FOOTER - на всю ширину */}
+						<footer className="bg-white border-t border-gray-200 mt-12">
+							<div className="max-w-7xl mx-auto px-6 py-8">
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+									<div>
+										<h3 className="font-semibold text-gray-900 mb-2">Контакти</h3>
+										<p className="text-sm text-gray-600">📞 +380 XX XXX XX XX</p>
+										<p className="text-sm text-gray-600">✉️ email@example.com</p>
+									</div>
+									<div>
+										<h3 className="font-semibold text-gray-900 mb-2">Адреса</h3>
+										<p className="text-sm text-gray-600">м. Київ</p>
+										<p className="text-sm text-gray-600">вул. Прикладна, 1</p>
+									</div>
+									<div>
+										<h3 className="font-semibold text-gray-900 mb-2">Графік роботи</h3>
+										<p className="text-sm text-gray-600">Пн-Пт: 9:00 - 18:00</p>
+										<p className="text-sm text-gray-600">Сб-Нд: вихідний</p>
+									</div>
 								</div>
-								<div>
-									<h3 className="font-semibold text-gray-900 mb-2">Адреса</h3>
-									<p className="text-sm text-gray-600">м. Київ</p>
-									<p className="text-sm text-gray-600">вул. Прикладна, 1</p>
+								<div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+									© 2024 Назва майстерні. Всі права захищені.
 								</div>
-								<div>
-									<h3 className="font-semibold text-gray-900 mb-2">Графік роботи</h3>
-									<p className="text-sm text-gray-600">Пн-Пт: 9:00 - 18:00</p>
-									<p className="text-sm text-gray-600">Сб-Нд: вихідний</p>
-								</div>
-							</div>
-							<div className="mt-4 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
-								© 2024 Назва майстерні. Всі права захищені.
 							</div>
 						</footer>
 						
