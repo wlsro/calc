@@ -1203,20 +1203,20 @@
 
         ReactDOM.render(<FrameCalculator />, document.getElementById('root'));
     </script>
-	<script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. Отримати поточний рік
         const currentYear = new Date().getFullYear();
-
-        // 2. Знайти елемент за його ID
         const copyrightElement = document.getElementById("copyright-year");
 
-        // 3. Змінити вміст елемента
+        // ТИМЧАСОВА ПЕРЕВІРКА:
+        console.log("Елемент знайдено:", copyrightElement); 
+        console.log("Поточний рік:", currentYear);
+
         if (copyrightElement) {
             copyrightElement.textContent = `© ${currentYear} Всі права захищені.`;
         }
     });
-	</script>
+</script>
 </body>
 
 </html>
