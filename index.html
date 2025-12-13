@@ -1172,15 +1172,18 @@
 					</div>
 						{/* FOOTER - на всю ширину */}
 						<footer className="bg-white border-t border-gray-200 mt-12">
-							<div className="max-w-7xl mx-auto px-6 py-8">
+							<div className="max-w-3xl mx-auto px-6 py-8">
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 									<div>
 										<h3 className="font-semibold text-gray-900 mb-2">Контакти</h3>
-										<p className="text-sm text-gray-600">📞 +380 XX XXX XX XX</p>
+										<p className="font-medium text-gray-700 mb-2">Майстерня</p>
+										<a className="text-sm text-gray-600" href="tel:+380976171601">+380 97 617 16 01</a>
+										<p className="text-sm text-gray-600">📞 +380 97 617 16 01</p>
 										<p className="text-sm text-gray-600">✉️ email@example.com</p>
 									</div>
 									<div>
-										<h3 className="font-semibold text-gray-900 mb-2">Адреса</h3>
+										<h3 className="font-semibold text-gray-900 mb-2"></h3>
+										<p className="font-medium text-gray-700 mb-2">Бухгалтерія</p>
 										<p className="text-sm text-gray-600">м. Київ</p>
 										<p className="text-sm text-gray-600">вул. Прикладна, 1</p>
 									</div>
@@ -1190,8 +1193,8 @@
 										<p className="text-sm text-gray-600">Сб-Нд: вихідний</p>
 									</div>
 								</div>
-								<div id="copyright-year" className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-									© 2024 Назва майстерні. Всі права захищені.
+								<div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+									© 2025 Art Millennuim. Всі права захищені.
 								</div>
 							</div>
 						</footer>
@@ -1203,20 +1206,6 @@
 
         ReactDOM.render(<FrameCalculator />, document.getElementById('root'));
     </script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const currentYear = new Date().getFullYear();
-        const copyrightElement = document.getElementById("copyright-year");
-
-        // ТИМЧАСОВА ПЕРЕВІРКА:
-        console.log("Елемент знайдено:", copyrightElement); 
-        console.log("Поточний рік:", currentYear);
-
-        if (copyrightElement) {
-            copyrightElement.textContent = `© ${currentYear} Всі права захищені.`;
-        }
-    });
-</script>
 </body>
 
 </html>
