@@ -1190,7 +1190,7 @@
 										<p className="text-sm text-gray-600">Сб-Нд: вихідний</p>
 									</div>
 								</div>
-								<div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+								<div id="copyright-year" className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
 									© 2024 Назва майстерні. Всі права захищені.
 								</div>
 							</div>
@@ -1203,6 +1203,20 @@
 
         ReactDOM.render(<FrameCalculator />, document.getElementById('root'));
     </script>
+	<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Отримати поточний рік
+        const currentYear = new Date().getFullYear();
+
+        // 2. Знайти елемент за його ID
+        const copyrightElement = document.getElementById("copyright-year");
+
+        // 3. Змінити вміст елемента
+        if (copyrightElement) {
+            copyrightElement.textContent = `© ${currentYear} Всі права захищені.`;
+        }
+    });
+	</script>
 </body>
 
 </html>
