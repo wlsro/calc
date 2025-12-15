@@ -739,6 +739,7 @@
 											<SearchIcon />
 										</div>
 										<input
+											name="Baguette"
 											type="text"
 											value={baguetteSearch}
 											onChange={(e) => {
@@ -802,6 +803,7 @@
                                 <div className="flex gap-4">
                                     <label className="flex items-center cursor-pointer">
                                         <input
+											name="w/oPassepartout"
                                             type="radio"
                                             checked={!withPassepartout}
                                             onChange={() => {
@@ -814,6 +816,7 @@
                                     </label>
                                     <label className="flex items-center cursor-pointer">
                                         <input
+											name="withPassepartout"
                                             type="radio"
                                             checked={withPassepartout}
                                             onChange={() => setWithPassepartout(true)}
