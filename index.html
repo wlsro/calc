@@ -834,6 +834,7 @@
                                 </label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <input
+										name="width"
                                         type="number"
                                         value={width}
                                         onChange={(e) => setWidth(e.target.value)}
@@ -843,6 +844,7 @@
                                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                     <input
+										name="height"
                                         type="number"
                                         value={height}
                                         onChange={(e) => setHeight(e.target.value)}
@@ -866,6 +868,7 @@
 													<SearchIcon />
 												</div>
 												<input
+													name="passepartout1Search"
 													type="text"
 													value={passepartout1Search}
 													onChange={(e) => {
@@ -910,6 +913,7 @@
                                             </div>
                                         )}
                                         <input
+											name="passepartout1Field"
                                             type="number"
                                             value={passepartout1Field}
                                             onChange={(e) => setPassepartout1Field(e.target.value)}
@@ -939,6 +943,7 @@
 													<SearchIcon />
 												</div>
 												<input
+													name="passepartout2Search"
 													type="text"
 													value={passepartout2Search}
 													onChange={(e) => {
@@ -983,6 +988,7 @@
                                                 </div>
                                             )}
                                             <input
+												name="passepartout2Field"
                                                 type="number"
                                                 value={passepartout2Field}
                                                 onChange={(e) => setPassepartout2Field(e.target.value)}
@@ -1034,6 +1040,7 @@
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Внутрішня стінка</label>
                                 <select
+									name="innerWall"
                                     value={innerWall}
                                     onChange={(e) => setInnerWall(e.target.value)}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1048,6 +1055,7 @@
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Скло</label>
                                 <select
+									name="glass"
                                     value={glass}
                                     onChange={(e) => setGlass(e.target.value)}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1062,6 +1070,7 @@
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Задня стінка</label>
                                 <select
+									name="backWall"
                                     value={backWall}
                                     onChange={(e) => setBackWall(e.target.value)}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1076,6 +1085,7 @@
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Кріплення</label>
                                 <select
+									name="mounting"
                                     value={mounting}
                                     onChange={(e) => setMounting(e.target.value)}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1090,6 +1100,7 @@
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Тип роботи</label>
                                 <select
+									name="workType"
                                     value={workType}
                                     onChange={(e) => setWorkType(e.target.value)}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1130,10 +1141,10 @@
 									</div>
 								</div>
 
-								{/* Мобільний: 2 в ряд + 1 під ними */}
+								{/* Мобільний */}
 								<div className="md:hidden space-y-4 mb-6">
 									<div className="grid grid-cols-2 gap-4">
-										{/* Загальна вартість - зліва */}
+										{/* Загальна вартість */}
 										<div className="text-center">
 											<div className="text-xs font-medium text-gray-600 mb-1">Загальна вартість</div>
 											<div className="text-2xl font-bold text-green-600">
@@ -1141,7 +1152,7 @@
 											</div>
 										</div>
 										
-										{/* Ціна майстерні - зправа */}
+										{/* Ціна майстерні */}
 										<div className="text-center">
 											<div className="text-xs font-medium text-gray-600 mb-1">Ціна майстерні</div>
 											<div className="text-2xl font-bold text-red-600">
@@ -1150,7 +1161,7 @@
 										</div>
 									</div>
 									
-									{/* Заробіток продавця - по центру внизу */}
+									{/* Заробіток продавця */}
 									<div className="text-center">
 										<div className="text-xs font-medium text-gray-600 mb-1">Заробіток продавця</div>
 										<div className="text-2xl font-bold text-gray-900">
