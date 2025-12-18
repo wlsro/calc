@@ -56,6 +56,7 @@
                         const pricePerMeter = parseFloat(row.c[3]?.v) || 0;
                         const width = parseFloat(row.c[4]?.v) || 0;
                         const additionalSize = parseFloat(row.c[5]?.v) || 0;
+						const img = String(row.c[6]?.v || ''); // URL фото багету
 
                         if (article && pricePerMeter > 0) {
                             baguetteData.push({
@@ -65,6 +66,7 @@
                                 pricePerMeter,
                                 width,
                                 additionalSize
+								img // Додаємо URL фото
                             });
                         }
                     }
@@ -355,6 +357,7 @@
 
             const [baguetteSearch, setBaguetteSearch] = useState('');
             const [selectedBaguette, setSelectedBaguette] = useState(null);
+			const [showBaguettePhoto, setShowBaguettePhoto] = useState(false); // Модальне вікно для фото
             const [withPassepartout, setWithPassepartout] = useState(false);
             const [width, setWidth] = useState('');
             const [height, setHeight] = useState('');
@@ -781,10 +784,22 @@
                                     )}
                                 </div>
                                 {selectedBaguette && (
-                                    <div className="mt-2 text-sm text-green-600">
-                                        ✓ Обрано: {selectedBaguette.article} ({selectedBaguette.pricePerMeter} грн/м)
-                                    </div>
-                                )}
+									<div className="mt-2 flex items-center justify-between">
+										<div className="text-sm text-green-600">
+											✓ Обрано: {selectedBaguette.article} ({selectedBaguette.pricePerMeter} грн/м)
+										</div>
+										{selectedBaguette.img ? (
+											<button
+												onClick={() => setShowBaguettePhoto(true)}
+												className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+											>
+												👁️ Переглянути фото
+											</button>
+										) : (
+											<span className="text-sm text-gray-400">Фото відсутнє</span>
+										)}
+									</div>
+								)}
                             </div>
 
                             {/* Outer Dimensions Display */}
@@ -1110,6 +1125,78 @@
                                     ))}
                                 </select>
                             </div>
+							
+							
+							{/* МОДАЛЬНЕ ВІКНО З ФОТО БАГЕТУ */}
+								{showBaguettePhoto && selectedBaguette && (
+									<div 
+										className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+										onClick={() => setShowBaguettePhoto(false)}
+									>
+										<div 
+											className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+											onClick={(e) => e.stopPropagation()}
+										>
+											{/* Кнопка закриття */}
+											<button
+												onClick={() => setShowBaguettePhoto(false)}
+												className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+											>
+												<XIcon />
+											</button>
+
+											{/* Контент модального вікна */}
+											<div className="p-6">
+												<h3 className="text-xl font-semibold text-gray-900 mb-4">
+													Багет {selectedBaguette.article}
+												</h3>
+												
+												{selectedBaguette.img ? (
+													<div className="mb-4">
+														<img 
+															src={selectedBaguette.img} 
+															alt={`Багет ${selectedBaguette.article}`}
+															className="w-full h-auto rounded-lg"
+															onError={(e) => {
+																e.target.style.display = 'none';
+																e.target.nextElementSibling.style.display = 'block';
+															}}
+														/>
+														<div className="hidden bg-gray-100 p-8 rounded-lg text-center text-gray-500">
+															Не вдалося завантажити фото
+														</div>
+													</div>
+												) : (
+													<div className="bg-gray-100 p-12 rounded-lg text-center text-gray-500 mb-4">
+														Фото відсутнє
+													</div>
+												)}
+
+												<div className="bg-gray-50 p-4 rounded-lg">
+													<div className="grid grid-cols-2 gap-4 text-sm">
+														<div>
+															<span className="text-gray-600">Артикул:</span>
+															<span className="ml-2 font-semibold">{selectedBaguette.article}</span>
+														</div>
+														<div>
+															<span className="text-gray-600">Ціна:</span>
+															<span className="ml-2 font-semibold">{selectedBaguette.pricePerMeter} грн/м</span>
+														</div>
+														<div>
+															<span className="text-gray-600">Ширина профілю:</span>
+															<span className="ml-2 font-semibold">{selectedBaguette.width} мм</span>
+														</div>
+														<div>
+															<span className="text-gray-600">Модель:</span>
+															<span className="ml-2 font-semibold">{selectedBaguette.model}</span>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								)}
+							
                         </div>
 
                         {calculations.total > 0 && (
