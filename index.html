@@ -2,83 +2,83 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор вартості рамок</title>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin
-        src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Калькулятор вартості рамок</title>
+	<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+	<script crossorigin
+		src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+		}
+	</style>
 </head>
 
 <body>
-    <div id="root"></div>
+	<div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
+	<script type="text/babel">
+		const { useState, useMemo, useEffect } = React;
 
-        // ============================================================================
-        // КОНФІГУРАЦІЯ
-        // ============================================================================
+		// ============================================================================
+		// КОНФІГУРАЦІЯ
+		// ============================================================================
 
-        const SHOW_ITEM_PRICES = true;
-        const GOOGLE_SHEETS_ID = '1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo';
+		const SHOW_ITEM_PRICES = true;
+		const GOOGLE_SHEETS_ID = '1W3NoKoATbbQ7FaCyxLkfksWOdEvcT1KT44aMrkcvdxo';
 
-        // ============================================================================
-        // ЗАВАНТАЖЕННЯ ДАНИХ З GOOGLE SHEETS
-        // ============================================================================
+		// ============================================================================
+		// ЗАВАНТАЖЕННЯ ДАНИХ З GOOGLE SHEETS
+		// ============================================================================
 
-        // Завантаження багету (перший лист, gid=0)
-        async function loadBaguetteFromGoogleSheets(sheetId) {
-            try {
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=0`;
-                const response = await fetch(url);
-                const text = await response.text();
-                const jsonText = text.substring(47).slice(0, -2);
-                const json = JSON.parse(jsonText);
-                const rows = json.table.rows;
-                const baguetteData = [];
+		// Завантаження багету (перший лист, gid=0)
+		async function loadBaguetteFromGoogleSheets(sheetId) {
+			try {
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=0`;
+				const response = await fetch(url);
+				const text = await response.text();
+				const jsonText = text.substring(47).slice(0, -2);
+				const json = JSON.parse(jsonText);
+				const rows = json.table.rows;
+				const baguetteData = [];
 
-                for (let i = 0; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row.c && row.c[0] && row.c[0].v) {
-                        const article = row.c[0]?.v || '';
-                        const model = row.c[1]?.v || '';
-                        const color = row.c[2]?.v || '';
-                        const pricePerMeter = parseFloat(row.c[3]?.v) || 0;
-                        const width = parseFloat(row.c[4]?.v) || 0;
-                        const additionalSize = parseFloat(row.c[5]?.v) || 0;
+				for (let i = 0; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.c && row.c[0] && row.c[0].v) {
+						const article = row.c[0]?.v || '';
+						const model = row.c[1]?.v || '';
+						const color = row.c[2]?.v || '';
+						const pricePerMeter = parseFloat(row.c[3]?.v) || 0;
+						const width = parseFloat(row.c[4]?.v) || 0;
+						const additionalSize = parseFloat(row.c[5]?.v) || 0;
 						const img = String(row.c[6]?.v || ''); // URL фото багету
 
-                        if (article && pricePerMeter > 0) {
-                            baguetteData.push({
-                                article,
-                                model,
-                                color,
-                                pricePerMeter,
-                                width,
-                                additionalSize,
+						if (article && pricePerMeter > 0) {
+							baguetteData.push({
+								article,
+								model,
+								color,
+								pricePerMeter,
+								width,
+								additionalSize,
 								img // Додаємо URL фото
-                            });
-                        }
-                    }
-                }
-                return baguetteData;
-            } catch (error) {
-                console.error('Помилка завантаження багету:', error);
-                return null;
-            }
-        }
+							});
+						}
+					}
+				}
+				return baguetteData;
+			} catch (error) {
+				console.error('Помилка завантаження багету:', error);
+				return null;
+			}
+		}
 
-        // Завантаження паспарту (другий лист, gid=1512021167)
+		// Завантаження паспарту (другий лист, gid=1512021167)
 		async function loadPassepartoutFromGoogleSheets(sheetId) {
 			try {
 				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=1512021167`;
@@ -104,14 +104,14 @@
 						}
 					}
 				}
-				
+
 				return passepartoutData;
 			} catch (error) {
 				console.error('Помилка завантаження паспарту:', error);
 				return null;
 			}
 		}
-		
+
 		// Завантаження внутрішньої стінки (gid=1833771588)
 		async function loadInnerWallFromGoogleSheets(sheetId) {
 			try {
@@ -276,101 +276,101 @@
 			}
 		}
 
-        // ============================================================================
-        // ТЕСТОВІ ДАНІ
-        // ============================================================================
+		// ============================================================================
+		// ТЕСТОВІ ДАНІ
+		// ============================================================================
 
-        const MOCK_DATA = {
-            baguette: [
-                { article: 'AM1515-015', model: 'AM1515', color: '015', pricePerMeter: 150, width: 30, additionalSize: 12 },
-                { article: 'AM1515-020', model: 'AM1515', color: '020', pricePerMeter: 150, width: 30, additionalSize: 12 },
-                { article: 'DM1715-073', model: 'DM1715', color: '073', pricePerMeter: 220, width: 45, additionalSize: 15 },
-                { article: 'BK2020-001', model: 'BK2020', color: '001', pricePerMeter: 180, width: 35, additionalSize: 13 },
-            ],
-            passepartout: [
-                { article: 'P-001', name: 'P-001', pricePerM2: 80 },
-                { article: 'P-002', name: 'P-002', pricePerM2: 95 },
-                { article: 'P-003', name: 'P-003', pricePerM2: 85 },
-            ],
-            components: {
-                innerWall: [
-                    { name: 'ДВП', pricePerM2: 45, type: 'area' },
-                    { name: 'Біле ДВП', pricePerM2: 55, type: 'area' },
-                    { name: 'Підрамник', pricePerMeter: 35, type: 'perimeter' },
-                    { name: 'ДВП + Підрамник', pricePerM2: 45, pricePerMeter: 35, type: 'combined' },
-                    { name: 'Без нічого', pricePerM2: 0, type: 'none' },
-                ],
-                glass: [
-                    { name: 'Скло звичайне', pricePerM2: 120 },
-                    { name: 'Скло антиблікове', pricePerM2: 180 },
-                    { name: 'Скло акрилове', pricePerM2: 150 },
-                    { name: 'Без скла', pricePerM2: 0 },
-                ],
-                backWall: [
-                    { name: 'Задник картон', pricePerM2: 30 },
-                    { name: 'Задник ДВП', pricePerM2: 40 },
-                    { name: 'Без задніка', pricePerM2: 0 },
-                ],
-                mounting: [
-                    { name: 'Вушка', price: 15 },
-                    { name: 'Вушка + ніжка', price: 25 },
-                    { name: 'Без кріплення', price: 0 },
-                ],
-            },
-            workTypes: [
-                { name: 'Натяжка', price: 200 },
-                { name: 'Оформлення', price: 150 },
-                { name: 'Зшивка рамки', price: 100 },
-            ],
-        };
+		const MOCK_DATA = {
+			baguette: [
+				{ article: 'AM1515-015', model: 'AM1515', color: '015', pricePerMeter: 150, width: 30, additionalSize: 12 },
+				{ article: 'AM1515-020', model: 'AM1515', color: '020', pricePerMeter: 150, width: 30, additionalSize: 12 },
+				{ article: 'DM1715-073', model: 'DM1715', color: '073', pricePerMeter: 220, width: 45, additionalSize: 15 },
+				{ article: 'BK2020-001', model: 'BK2020', color: '001', pricePerMeter: 180, width: 35, additionalSize: 13 },
+			],
+			passepartout: [
+				{ article: 'P-001', name: 'P-001', pricePerM2: 80 },
+				{ article: 'P-002', name: 'P-002', pricePerM2: 95 },
+				{ article: 'P-003', name: 'P-003', pricePerM2: 85 },
+			],
+			components: {
+				innerWall: [
+					{ name: 'ДВП', pricePerM2: 45, type: 'area' },
+					{ name: 'Біле ДВП', pricePerM2: 55, type: 'area' },
+					{ name: 'Підрамник', pricePerMeter: 35, type: 'perimeter' },
+					{ name: 'ДВП + Підрамник', pricePerM2: 45, pricePerMeter: 35, type: 'combined' },
+					{ name: 'Без нічого', pricePerM2: 0, type: 'none' },
+				],
+				glass: [
+					{ name: 'Скло звичайне', pricePerM2: 120 },
+					{ name: 'Скло антиблікове', pricePerM2: 180 },
+					{ name: 'Скло акрилове', pricePerM2: 150 },
+					{ name: 'Без скла', pricePerM2: 0 },
+				],
+				backWall: [
+					{ name: 'Задник картон', pricePerM2: 30 },
+					{ name: 'Задник ДВП', pricePerM2: 40 },
+					{ name: 'Без задніка', pricePerM2: 0 },
+				],
+				mounting: [
+					{ name: 'Вушка', price: 15 },
+					{ name: 'Вушка + ніжка', price: 25 },
+					{ name: 'Без кріплення', price: 0 },
+				],
+			},
+			workTypes: [
+				{ name: 'Натяжка', price: 200 },
+				{ name: 'Оформлення', price: 150 },
+				{ name: 'Зшивка рамки', price: 100 },
+			],
+		};
 
-        // ============================================================================
-        // ІКОНКИ
-        // ============================================================================
+		// ============================================================================
+		// ІКОНКИ
+		// ============================================================================
 
-        const SearchIcon = () => (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-        );
+		const SearchIcon = () => (
+			<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+			</svg>
+		);
 
-        const PlusIcon = () => (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-        );
+		const PlusIcon = () => (
+			<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+			</svg>
+		);
 
-        const XIcon = () => (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        );
+		const XIcon = () => (
+			<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+			</svg>
+		);
 
-        // ============================================================================
-        // КОМПОНЕНТ
-        // ============================================================================
+		// ============================================================================
+		// КОМПОНЕНТ
+		// ============================================================================
 
-        function FrameCalculator() {
-            const [data, setData] = useState(MOCK_DATA);
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState(null);
+		function FrameCalculator() {
+			const [data, setData] = useState(MOCK_DATA);
+			const [loading, setLoading] = useState(false);
+			const [error, setError] = useState(null);
 
-            const [baguetteSearch, setBaguetteSearch] = useState('');
-            const [selectedBaguette, setSelectedBaguette] = useState(null);
+			const [baguetteSearch, setBaguetteSearch] = useState('');
+			const [selectedBaguette, setSelectedBaguette] = useState(null);
 			const [showBaguettePhoto, setShowBaguettePhoto] = useState(false); // Модальне вікно для фото
-            const [withPassepartout, setWithPassepartout] = useState(false);
-            const [width, setWidth] = useState('');
-            const [height, setHeight] = useState('');
+			const [withPassepartout, setWithPassepartout] = useState(false);
+			const [width, setWidth] = useState('');
+			const [height, setHeight] = useState('');
 
-            const [passepartout1Search, setPassepartout1Search] = useState('');
-            const [selectedPassepartout1, setSelectedPassepartout1] = useState(null);
-            const [passepartout1Field, setPassepartout1Field] = useState('');
-            const [showPassepartout2, setShowPassepartout2] = useState(false);
-            const [passepartout2Search, setPassepartout2Search] = useState('');
-            const [selectedPassepartout2, setSelectedPassepartout2] = useState(null);
-            const [passepartout2Field, setPassepartout2Field] = useState('');
+			const [passepartout1Search, setPassepartout1Search] = useState('');
+			const [selectedPassepartout1, setSelectedPassepartout1] = useState(null);
+			const [passepartout1Field, setPassepartout1Field] = useState('');
+			const [showPassepartout2, setShowPassepartout2] = useState(false);
+			const [passepartout2Search, setPassepartout2Search] = useState('');
+			const [selectedPassepartout2, setSelectedPassepartout2] = useState(null);
+			const [passepartout2Field, setPassepartout2Field] = useState('');
 
-            const [innerWall, setInnerWall] = useState('');
+			const [innerWall, setInnerWall] = useState('');
 			const [glass, setGlass] = useState('');
 			const [backWall, setBackWall] = useState('');
 			const [mounting, setMounting] = useState('');
@@ -380,7 +380,7 @@
 			useEffect(() => {
 				async function loadData() {
 					setLoading(true);
-					
+
 					const [baguetteData, passepartoutData, innerWallData, glassData, backWallData, mountingData, workTypesData] = await Promise.all([
 						loadBaguetteFromGoogleSheets(GOOGLE_SHEETS_ID),
 						loadPassepartoutFromGoogleSheets(GOOGLE_SHEETS_ID),
@@ -450,8 +450,8 @@
 					}
 
 					setLoading(false);
-					
-				        // Встановлюємо дефолтні значення після завантаження
+
+					// Встановлюємо дефолтні значення після завантаження
 					if (innerWallData && innerWallData.length > 0) {
 						setInnerWall(innerWallData[0].name);
 					}
@@ -472,13 +472,13 @@
 				loadData();
 			}, []);
 
-            const filteredBaguettes = useMemo(() => {
-                if (!baguetteSearch.trim()) return [];
-                const search = baguetteSearch.toLowerCase();
-                return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 20);
-            }, [baguetteSearch, data.baguette]);
+			const filteredBaguettes = useMemo(() => {
+				if (!baguetteSearch.trim()) return [];
+				const search = baguetteSearch.toLowerCase();
+				return data.baguette.filter(b => b.article.toLowerCase().includes(search)).slice(0, 20);
+			}, [baguetteSearch, data.baguette]);
 
-            const filteredPassepartout1 = useMemo(() => {
+			const filteredPassepartout1 = useMemo(() => {
 				if (!passepartout1Search.trim()) return [];
 				const search = passepartout1Search.toLowerCase();
 				return data.passepartout.filter(p =>
@@ -494,25 +494,25 @@
 				).slice(0, 20);
 			}, [passepartout2Search, data.passepartout]);
 
-            const calculations = useMemo(() => {
-                // БАГЕТ ТЕПЕР НЕ ОБОВ'ЯЗКОВИЙ - перевіряємо тільки розміри
-                if (!width || !height) {
-                    return { total: 0, details: [], dimensions: null };
-                }
+			const calculations = useMemo(() => {
+				// БАГЕТ ТЕПЕР НЕ ОБОВ'ЯЗКОВИЙ - перевіряємо тільки розміри
+				if (!width || !height) {
+					return { total: 0, details: [], dimensions: null };
+				}
 
-                const w = parseFloat(width);
-                const h = parseFloat(height);
+				const w = parseFloat(width);
+				const h = parseFloat(height);
 
-                if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) {
-                    return { total: 0, details: [], dimensions: null };
-                }
+				if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) {
+					return { total: 0, details: [], dimensions: null };
+				}
 
-                let total = 0;
-                const details = [];
-                let innerWidth = w;
-                let innerHeight = h;
+				let total = 0;
+				const details = [];
+				let innerWidth = w;
+				let innerHeight = h;
 
-                // Розрахунок паспарту
+				// Розрахунок паспарту
 				if (withPassepartout && selectedPassepartout1 && passepartout1Field) {
 					const field1 = parseFloat(passepartout1Field);
 					if (!isNaN(field1) && field1 > 0) {
@@ -556,78 +556,78 @@
 					}
 				}
 
-                // Розрахунок багету (тепер опціонально)
-                let outerWidth = innerWidth;
-                let outerHeight = innerHeight;
+				// Розрахунок багету (тепер опціонально)
+				let outerWidth = innerWidth;
+				let outerHeight = innerHeight;
 
-                if (selectedBaguette) {
-                    outerWidth = innerWidth + selectedBaguette.additionalSize * 2;
-                    outerHeight = innerHeight + selectedBaguette.additionalSize * 2;
+				if (selectedBaguette) {
+					outerWidth = innerWidth + selectedBaguette.additionalSize * 2;
+					outerHeight = innerHeight + selectedBaguette.additionalSize * 2;
 
-                    const baguettePerimeter = ((outerWidth + outerHeight) * 2) / 1000;
-                    const baguetteCost = baguettePerimeter * selectedBaguette.pricePerMeter;
-                    total += baguetteCost;
-                    details.push({
-                        name: `Багет: ${selectedBaguette.article}`,
-                        value: `${baguettePerimeter.toFixed(3)} м × ${selectedBaguette.pricePerMeter} грн`,
-                        cost: baguetteCost
-                    });
-                }
+					const baguettePerimeter = ((outerWidth + outerHeight) * 2) / 1000;
+					const baguetteCost = baguettePerimeter * selectedBaguette.pricePerMeter;
+					total += baguetteCost;
+					details.push({
+						name: `Багет: ${selectedBaguette.article}`,
+						value: `${baguettePerimeter.toFixed(3)} м × ${selectedBaguette.pricePerMeter} грн`,
+						cost: baguetteCost
+					});
+				}
 
-                // Внутрішня стінка
-                const innerWallItem = data.components.innerWall.find(item => item.name === innerWall);
-                if (innerWallItem && innerWallItem.type !== 'none') {
-                    const innerArea = (innerWidth * innerHeight) / 1000000;
+				// Внутрішня стінка
+				const innerWallItem = data.components.innerWall.find(item => item.name === innerWall);
+				if (innerWallItem && innerWallItem.type !== 'none') {
+					const innerArea = (innerWidth * innerHeight) / 1000000;
 
-                    if (innerWallItem.type === 'area') {
-                        const cost = innerArea * innerWallItem.pricePerM2;
-                        total += cost;
-                        details.push({
-                            name: `Внутрішня стінка: ${innerWall}`,
-                            value: `${innerArea.toFixed(4)} м² × ${innerWallItem.pricePerM2} грн`,
-                            cost
-                        });
-                    } else if (innerWallItem.type === 'perimeter') {
-                        const perimeter = ((innerWidth + innerHeight) * 2) / 1000;
-                        const cost = perimeter * innerWallItem.pricePerMeter;
-                        total += cost;
-                        details.push({
-                            name: `Внутрішня стінка: ${innerWall}`,
-                            value: `${perimeter.toFixed(3)} м × ${innerWallItem.pricePerMeter} грн`,
-                            cost
-                        });
-                    } else if (innerWallItem.type === 'combined') {
-                        const areaCost = innerArea * innerWallItem.pricePerM2;
-                        const perimeter = ((innerWidth + innerHeight) * 2) / 1000;
-                        const perimeterCost = perimeter * innerWallItem.pricePerMeter;
-                        const combinedCost = areaCost + perimeterCost;
-                        total += combinedCost;
-                        details.push({
-                            name: `Внутрішня стінка: ${innerWall}`,
-                            value: `ДВП ${innerArea.toFixed(4)} м² + Підрамник ${perimeter.toFixed(3)} м`,
-                            cost: combinedCost
-                        });
-                    }
-                }
+					if (innerWallItem.type === 'area') {
+						const cost = innerArea * innerWallItem.pricePerM2;
+						total += cost;
+						details.push({
+							name: `Внутрішня стінка: ${innerWall}`,
+							value: `${innerArea.toFixed(4)} м² × ${innerWallItem.pricePerM2} грн`,
+							cost
+						});
+					} else if (innerWallItem.type === 'perimeter') {
+						const perimeter = ((innerWidth + innerHeight) * 2) / 1000;
+						const cost = perimeter * innerWallItem.pricePerMeter;
+						total += cost;
+						details.push({
+							name: `Внутрішня стінка: ${innerWall}`,
+							value: `${perimeter.toFixed(3)} м × ${innerWallItem.pricePerMeter} грн`,
+							cost
+						});
+					} else if (innerWallItem.type === 'combined') {
+						const areaCost = innerArea * innerWallItem.pricePerM2;
+						const perimeter = ((innerWidth + innerHeight) * 2) / 1000;
+						const perimeterCost = perimeter * innerWallItem.pricePerMeter;
+						const combinedCost = areaCost + perimeterCost;
+						total += combinedCost;
+						details.push({
+							name: `Внутрішня стінка: ${innerWall}`,
+							value: `ДВП ${innerArea.toFixed(4)} м² + Підрамник ${perimeter.toFixed(3)} м`,
+							cost: combinedCost
+						});
+					}
+				}
 
-                // Скло
-                const glassItem = data.components.glass.find(item => item.name === glass);
-                if (glassItem && glassItem.pricePerM2 > 0) {
-                    const glassArea = (innerWidth * innerHeight) / 1000000;
-                    const glassCost = glassArea * glassItem.pricePerM2;
-                    total += glassCost;
-                    details.push({
-                        name: `Скло: ${glass}`,
-                        value: `${glassArea.toFixed(4)} м² × ${glassItem.pricePerM2} грн`,
-                        cost: glassCost
-                    });
-                }
+				// Скло
+				const glassItem = data.components.glass.find(item => item.name === glass);
+				if (glassItem && glassItem.pricePerM2 > 0) {
+					const glassArea = (innerWidth * innerHeight) / 1000000;
+					const glassCost = glassArea * glassItem.pricePerM2;
+					total += glassCost;
+					details.push({
+						name: `Скло: ${glass}`,
+						value: `${glassArea.toFixed(4)} м² × ${glassItem.pricePerM2} грн`,
+						cost: glassCost
+					});
+				}
 
-                // Задня стінка
+				// Задня стінка
 				const backWallItem = data.components.backWall.find(item => item.name === backWall);
 				if (backWallItem && backWallItem.pricePerM2 > 0) {
 					let backWidth, backHeight;
-					
+
 					if (selectedBaguette) {
 						// Якщо є багет - рахуємо від зовнішнього розміру рамки -3мм
 						backWidth = (outerWidth - 3) / 1000;
@@ -637,7 +637,7 @@
 						backWidth = innerWidth / 1000;
 						backHeight = innerHeight / 1000;
 					}
-					
+
 					const backArea = backWidth * backHeight;
 					const backCost = backArea * backWallItem.pricePerM2;
 					total += backCost;
@@ -648,29 +648,29 @@
 					});
 				}
 
-                // Кріплення
-                const mountingItem = data.components.mounting.find(item => item.name === mounting);
-                if (mountingItem && mountingItem.price > 0) {
-                    total += mountingItem.price;
-                    details.push({
-                        name: `Кріплення: ${mounting}`,
-                        value: `${mountingItem.price} грн`,
-                        cost: mountingItem.price
-                    });
-                }
+				// Кріплення
+				const mountingItem = data.components.mounting.find(item => item.name === mounting);
+				if (mountingItem && mountingItem.price > 0) {
+					total += mountingItem.price;
+					details.push({
+						name: `Кріплення: ${mounting}`,
+						value: `${mountingItem.price} грн`,
+						cost: mountingItem.price
+					});
+				}
 
-                // Тип роботи
-                const workTypeItem = data.workTypes.find(item => item.name === workType);
-                if (workTypeItem) {
-                    total += workTypeItem.price;
-                    details.push({
-                        name: `Робота: ${workType}`,
-                        value: `${workTypeItem.price} грн`,
-                        cost: workTypeItem.price
-                    });
-                }
+				// Тип роботи
+				const workTypeItem = data.workTypes.find(item => item.name === workType);
+				if (workTypeItem) {
+					total += workTypeItem.price;
+					details.push({
+						name: `Робота: ${workType}`,
+						value: `${workTypeItem.price} грн`,
+						cost: workTypeItem.price
+					});
+				}
 
-                return {
+				return {
 					total,
 					details,
 					dimensions: selectedBaguette ? {
@@ -684,23 +684,23 @@
 						perimeter: ((innerWidth + innerHeight) * 2) / 1000 // пог.м
 					}
 				};
-            }, [selectedBaguette, width, height, withPassepartout, selectedPassepartout1, passepartout1Field,
-                showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
+			}, [selectedBaguette, width, height, withPassepartout, selectedPassepartout1, passepartout1Field,
+				showPassepartout2, selectedPassepartout2, passepartout2Field, innerWall, glass, backWall, mounting, workType, data]);
 
-            return (
-			<div className="min-h-screen bg-gray-50">
-			
-				    {/* HEADER - на всю ширину */}
+			return (
+				<div className="min-h-screen bg-gray-50">
+
+					{/* HEADER - на всю ширину */}
 					<header className="bg-white shadow-sm border-b border-gray-200">
 						<div className="max-w-3xl mx-auto px-10 py-4 flex items-center justify-between">
 							<div className="flex items-center gap-4">
-								<button 
-									onClick={() => window.location.reload()} 
+								<button
+									onClick={() => window.location.reload()}
 									className="focus:outline-none hover:opacity-80 transition-opacity"
 								>
-									<img 
-										src="https://raw.githubusercontent.com/wlsro/calc/804362d9c5096c8c6704a0e5f12006c81e280086/logo.webp" 
-										alt="Логотип" 
+									<img
+										src="https://raw.githubusercontent.com/wlsro/calc/804362d9c5096c8c6704a0e5f12006c81e280086/logo.webp"
+										alt="Логотип"
 										className="h-12 w-auto"
 									/>
 								</button>
@@ -711,33 +711,33 @@
 							</div>
 						</div>
 					</header>
-			
-                    <div className="max-w-3xl mx-auto p-4 py-4">					
-					
-                        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                            <h1 className="text-2xl font-semibold text-gray-900">Калькулятор вартості рамок</h1>
-                            <p className="text-sm text-gray-600 mt-1">Розрахунок вартості оформлення фото та вишивок</p>
-                        </div>
 
-                        {loading && (
-                            <div className="bg-blue-50 rounded-lg shadow-sm p-6 mb-6 text-center">
-                                <div className="text-blue-600">Завантаження даних...</div>
-                            </div>
-                        )}
+					<div className="max-w-3xl mx-auto p-4 py-4">
 
-                        {error && (
-                            <div className="bg-amber-50 rounded-lg shadow-sm p-4 mb-6 border border-amber-200">
-                                <div className="text-sm text-amber-800">⚠️ {error}</div>
-                            </div>
-                        )}
+						<div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+							<h1 className="text-2xl font-semibold text-gray-900">Калькулятор вартості рамок</h1>
+							<p className="text-sm text-gray-600 mt-1">Розрахунок вартості оформлення фото та вишивок</p>
+						</div>
 
-                        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+						{loading && (
+							<div className="bg-blue-50 rounded-lg shadow-sm p-6 mb-6 text-center">
+								<div className="text-blue-600">Завантаження даних...</div>
+							</div>
+						)}
 
-                            {/* 1. Baguette - ТЕПЕР НЕ ОБОВ'ЯЗКОВЕ */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Багет</label>
-                                <div className="relative">
-                                    <div className="relative">
+						{error && (
+							<div className="bg-amber-50 rounded-lg shadow-sm p-4 mb-6 border border-amber-200">
+								<div className="text-sm text-amber-800">⚠️ {error}</div>
+							</div>
+						)}
+
+						<div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+
+							{/* 1. Baguette - ТЕПЕР НЕ ОБОВ'ЯЗКОВЕ */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Багет</label>
+								<div className="relative">
+									<div className="relative">
 										<div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
 											<SearchIcon />
 										</div>
@@ -765,25 +765,25 @@
 										)}
 									</div>
 
-                                    {filteredBaguettes.length > 0 && !selectedBaguette && (
-                                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                            {filteredBaguettes.map((item) => (
-                                                <button
-                                                    key={item.article}
-                                                    onClick={() => {
-                                                        setSelectedBaguette(item);
-                                                        setBaguetteSearch(item.article);
-                                                    }}
-                                                    className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                                                >
-                                                    <div className="font-medium text-gray-900">{item.article}</div>
-                                                    <div className="text-sm text-gray-600">{item.pricePerMeter} грн/м</div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                {selectedBaguette && (
+									{filteredBaguettes.length > 0 && !selectedBaguette && (
+										<div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+											{filteredBaguettes.map((item) => (
+												<button
+													key={item.article}
+													onClick={() => {
+														setSelectedBaguette(item);
+														setBaguetteSearch(item.article);
+													}}
+													className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+												>
+													<div className="font-medium text-gray-900">{item.article}</div>
+													<div className="text-sm text-gray-600">{item.pricePerMeter} грн/м</div>
+												</button>
+											))}
+										</div>
+									)}
+								</div>
+								{selectedBaguette && (
 									<div className="mt-2 flex items-center justify-between">
 										<div className="text-sm text-green-600">
 											✓ Обрано: {selectedBaguette.article} ({selectedBaguette.pricePerMeter} грн/м)
@@ -800,161 +800,161 @@
 										)}
 									</div>
 								)}
-                            </div>
+							</div>
 
-                            {/* Outer Dimensions Display */}
-                            {calculations.dimensions && (
-                                <div className="bg-gray-50 p-3 rounded-md border border-gray-200 text-sm">
-                                    <span className="text-gray-600">Зовнішній розмір рамки: </span>
-                                    <span className="font-semibold text-gray-900">
-                                        {Math.round(calculations.dimensions.width)} x {Math.round(calculations.dimensions.height)} мм
-                                    </span>
-                                </div>
-                            )}
+							{/* Outer Dimensions Display */}
+							{calculations.dimensions && (
+								<div className="bg-gray-50 p-3 rounded-md border border-gray-200 text-sm">
+									<span className="text-gray-600">Зовнішній розмір рамки: </span>
+									<span className="font-semibold text-gray-900">
+										{Math.round(calculations.dimensions.width)} x {Math.round(calculations.dimensions.height)} мм
+									</span>
+								</div>
+							)}
 
-                            {/* 2. Paspartu Mode */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Паспарту</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center cursor-pointer">
-                                        <input
+							{/* 2. Paspartu Mode */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Паспарту</label>
+								<div className="flex gap-4">
+									<label className="flex items-center cursor-pointer">
+										<input
 											name="w/oPassepartout"
-                                            type="radio"
-                                            checked={!withPassepartout}
-                                            onChange={() => {
-                                                setWithPassepartout(false);
-                                                setShowPassepartout2(false);
-                                            }}
-                                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <span className="ml-2 text-gray-700">Без паспарту</span>
-                                    </label>
-                                    <label className="flex items-center cursor-pointer">
-                                        <input
+											type="radio"
+											checked={!withPassepartout}
+											onChange={() => {
+												setWithPassepartout(false);
+												setShowPassepartout2(false);
+											}}
+											className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+										/>
+										<span className="ml-2 text-gray-700">Без паспарту</span>
+									</label>
+									<label className="flex items-center cursor-pointer">
+										<input
 											name="withPassepartout"
-                                            type="radio"
-                                            checked={withPassepartout}
-                                            onChange={() => setWithPassepartout(true)}
-                                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <span className="ml-2 text-gray-700">З паспарту</span>
-                                    </label>
-                                </div>
-                            </div>
+											type="radio"
+											checked={withPassepartout}
+											onChange={() => setWithPassepartout(true)}
+											className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+										/>
+										<span className="ml-2 text-gray-700">З паспарту</span>
+									</label>
+								</div>
+							</div>
 
-                            {/* 3. Dimensions */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    {withPassepartout ? 'Розмір вікна паспарту (мм) *' : 'Розміри (мм) *'}
-                                </label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input
+							{/* 3. Dimensions */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									{withPassepartout ? 'Розмір вікна паспарту (мм) *' : 'Розміри (мм) *'}
+								</label>
+								<div className="grid grid-cols-2 gap-4">
+									<input
 										name="width"
-                                        type="number"
-                                        value={width}
-                                        onChange={(e) => setWidth(e.target.value)}
-                                        placeholder="Ширина"
-                                        min="50"
-                                        max="3000"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <input
+										type="number"
+										value={width}
+										onChange={(e) => setWidth(e.target.value)}
+										placeholder="Ширина"
+										min="50"
+										max="3000"
+										className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+									/>
+									<input
 										name="height"
-                                        type="number"
-                                        value={height}
-                                        onChange={(e) => setHeight(e.target.value)}
-                                        placeholder="Висота"
-                                        min="50"
-                                        max="3000"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
+										type="number"
+										value={height}
+										onChange={(e) => setHeight(e.target.value)}
+										placeholder="Висота"
+										min="50"
+										max="3000"
+										className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+									/>
+								</div>
+							</div>
 
-                            {/* 4. Paspartu Details */}
-                            {withPassepartout && (
-                                <div className="space-y-4 p-4 bg-gray-50 rounded-md">
-                                    <div className="space-y-3">
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            {showPassepartout2 ? 'Паспарту (нижнє)' : 'Паспарту'}
-                                        </label>
-                                        <div className="relative">
-                                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-													<SearchIcon />
-												</div>
-												<input
-													name="passepartout1Search"
-													type="text"
-													value={passepartout1Search}
-													onChange={(e) => {
-														setPassepartout1Search(e.target.value);
+							{/* 4. Paspartu Details */}
+							{withPassepartout && (
+								<div className="space-y-4 p-4 bg-gray-50 rounded-md">
+									<div className="space-y-3">
+										<label className="block text-sm font-medium text-gray-700">
+											{showPassepartout2 ? 'Паспарту (нижнє)' : 'Паспарту'}
+										</label>
+										<div className="relative">
+											<div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+												<SearchIcon />
+											</div>
+											<input
+												name="passepartout1Search"
+												type="text"
+												value={passepartout1Search}
+												onChange={(e) => {
+													setPassepartout1Search(e.target.value);
+													setSelectedPassepartout1(null);
+												}}
+												placeholder="Пошук паспарту"
+												className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+											/>
+											{passepartout1Search && (
+												<button
+													onClick={() => {
+														setPassepartout1Search('');
 														setSelectedPassepartout1(null);
 													}}
-													placeholder="Пошук паспарту"
-													className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-												/>
-												{passepartout1Search && (
-													<button
-														onClick={() => {
-															setPassepartout1Search('');
-															setSelectedPassepartout1(null);
-														}}
-														className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-													>
-														<XIcon />
-													</button>
-												)}
-                                            {filteredPassepartout1.length > 0 && !selectedPassepartout1 && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                                    {filteredPassepartout1.map((item) => (
-                                                        <button
-                                                            key={item.article}
-                                                            onClick={() => {
-                                                                setSelectedPassepartout1(item);
-                                                                setPassepartout1Search(item.article);
-                                                            }}
-                                                            className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                                                        >
-                                                            <div className="font-medium text-gray-900">{item.article}</div>
-                                                            <div className="text-sm text-gray-600">{item.pricePerM2} грн/м²</div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {selectedPassepartout1 && (
-                                            <div className="text-sm text-green-600">
-                                                ✓ Обрано: {selectedPassepartout1.article} ({selectedPassepartout1.pricePerM2} грн/м²)
-                                            </div>
-                                        )}
-                                        <input
+													className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+												>
+													<XIcon />
+												</button>
+											)}
+											{filteredPassepartout1.length > 0 && !selectedPassepartout1 && (
+												<div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+													{filteredPassepartout1.map((item) => (
+														<button
+															key={item.article}
+															onClick={() => {
+																setSelectedPassepartout1(item);
+																setPassepartout1Search(item.article);
+															}}
+															className="w-full px-4 py-2 text-left hover:bg-gray-100"
+														>
+															<div className="font-medium text-gray-900">{item.article}</div>
+															<div className="text-sm text-gray-600">{item.pricePerM2} грн/м²</div>
+														</button>
+													))}
+												</div>
+											)}
+										</div>
+										{selectedPassepartout1 && (
+											<div className="text-sm text-green-600">
+												✓ Обрано: {selectedPassepartout1.article} ({selectedPassepartout1.pricePerM2} грн/м²)
+											</div>
+										)}
+										<input
 											name="passepartout1Field"
-                                            type="number"
-                                            value={passepartout1Field}
-                                            onChange={(e) => setPassepartout1Field(e.target.value)}
-                                            placeholder={showPassepartout2 ? "Видима ширина поля (мм)" : "Ширина поля (мм)"}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        />
-                                    </div>
+											type="number"
+											value={passepartout1Field}
+											onChange={(e) => setPassepartout1Field(e.target.value)}
+											placeholder={showPassepartout2 ? "Видима ширина поля (мм)" : "Ширина поля (мм)"}
+											className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+										/>
+									</div>
 
-                                    {showPassepartout2 && (
-                                        <div className="space-y-3 pt-3 border-t border-gray-200">
-                                            <div className="flex items-center justify-between">
-                                                <label className="block text-sm font-medium text-gray-700">Паспарту (верхнє)</label>
-                                                <button
-                                                    onClick={() => {
-                                                        setShowPassepartout2(false);
-                                                        setSelectedPassepartout2(null);
-                                                        setPassepartout2Search('');
-                                                        setPassepartout2Field('');
-                                                    }}
-                                                    className="text-red-600 hover:text-red-700 p-1"
-                                                >
-                                                    <XIcon />
-                                                </button>
-                                            </div>
-                                            <div className="relative">
-                                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+									{showPassepartout2 && (
+										<div className="space-y-3 pt-3 border-t border-gray-200">
+											<div className="flex items-center justify-between">
+												<label className="block text-sm font-medium text-gray-700">Паспарту (верхнє)</label>
+												<button
+													onClick={() => {
+														setShowPassepartout2(false);
+														setSelectedPassepartout2(null);
+														setPassepartout2Search('');
+														setPassepartout2Field('');
+													}}
+													className="text-red-600 hover:text-red-700 p-1"
+												>
+													<XIcon />
+												</button>
+											</div>
+											<div className="relative">
+												<div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
 													<SearchIcon />
 												</div>
 												<input
@@ -979,228 +979,227 @@
 														<XIcon />
 													</button>
 												)}
-                                                {filteredPassepartout2.length > 0 && !selectedPassepartout2 && (
-                                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                                        {filteredPassepartout2.map((item) => (
-                                                            <button
-                                                                key={item.article}
-                                                                onClick={() => {
-                                                                    setSelectedPassepartout2(item);
-                                                                    setPassepartout2Search(item.article);
-                                                                }}
-                                                                className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                                                            >
-                                                                <div className="font-medium text-gray-900">{item.article}</div>
-                                                                <div className="text-sm text-gray-600">{item.pricePerM2} грн/м²</div>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {selectedPassepartout2 && (
-                                                <div className="text-sm text-green-600">
-                                                    ✓ Обрано: {selectedPassepartout2.article} ({selectedPassepartout2.pricePerM2} грн/м²)
-                                                </div>
-                                            )}
-                                            <input
-												name="passepartout2Field"
-                                                type="number"
-                                                value={passepartout2Field}
-                                                onChange={(e) => setPassepartout2Field(e.target.value)}
-                                                placeholder="Видима ширина поля (мм)"
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                    )}
-
-                                    {!showPassepartout2 && (
-                                        <button
-                                            onClick={() => setShowPassepartout2(true)}
-                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
-                                        >
-                                            <PlusIcon />
-                                            Додати друге паспарту
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-							
-							{/* Inner Dimensions Display - НОВИЙ БЛОК */}
-								{calculations.innerDimensions && (
-									<div className="bg-blue-50 p-3 rounded-md border border-blue-200 text-sm">
-										<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-											<div>
-												<span className="text-gray-600">Внутрішній розмір: </span>
-												<span className="font-semibold text-gray-900">
-													{Math.round(calculations.innerDimensions.width)} x {Math.round(calculations.innerDimensions.height)} мм
-												</span>
-											</div>
-											<div>
-												<span className="text-gray-600">Площа: </span>
-												<span className="font-semibold text-gray-900">
-													{calculations.innerDimensions.area.toFixed(4)} м²
-												</span>
-											</div>
-											<div>
-												<span className="text-gray-600">Периметр: </span>
-												<span className="font-semibold text-gray-900">
-													{calculations.innerDimensions.perimeter.toFixed(3)} м
-												</span>
-											</div>
-										</div>
-									</div>
-								)}
-
-                            {/* 5. Inner Wall */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Внутрішня стінка</label>
-                                <select
-									name="innerWall"
-                                    value={innerWall}
-                                    onChange={(e) => setInnerWall(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    {data.components.innerWall.map((item) => (
-                                        <option key={item.name} value={item.name}>{item.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* 6. Glass */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Скло</label>
-                                <select
-									name="glass"
-                                    value={glass}
-                                    onChange={(e) => setGlass(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    {data.components.glass.map((item) => (
-                                        <option key={item.name} value={item.name}>{item.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* 7. Back Wall */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Задня стінка</label>
-                                <select
-									name="backWall"
-                                    value={backWall}
-                                    onChange={(e) => setBackWall(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    {data.components.backWall.map((item) => (
-                                        <option key={item.name} value={item.name}>{item.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* 8. Mounting */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Кріплення</label>
-                                <select
-									name="mounting"
-                                    value={mounting}
-                                    onChange={(e) => setMounting(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    {data.components.mounting.map((item) => (
-                                        <option key={item.name} value={item.name}>{item.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* 9. Work Type */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Тип роботи</label>
-                                <select
-									name="workType"
-                                    value={workType}
-                                    onChange={(e) => setWorkType(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    {data.workTypes.map((item) => (
-                                        <option key={item.name} value={item.name}>{item.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-							
-							
-							{/* МОДАЛЬНЕ ВІКНО З ФОТО БАГЕТУ */}
-								{showBaguettePhoto && selectedBaguette && (
-									<div 
-										className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-										style={{marginTop: 0 !important;}}
-										onClick={() => setShowBaguettePhoto(false)}
-									>
-										<div 
-											className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto"
-											onClick={(e) => e.stopPropagation()}
-										>
-											{/* Кнопка закриття */}
-											<button
-												onClick={() => setShowBaguettePhoto(false)}
-												className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-											>
-												<XIcon />
-											</button>
-
-											{/* Контент модального вікна */}
-											<div className="p-6">
-												<h3 className="text-xl font-semibold text-gray-900 mb-4">
-													Багет {selectedBaguette.article}
-												</h3>
-												
-												{selectedBaguette.img ? (
-													<div className="mb-4">
-														<img 
-															src={selectedBaguette.img} 
-															alt={`Багет ${selectedBaguette.article}`}
-															className="w-full h-auto rounded-lg"
-															onError={(e) => {
-																e.target.style.display = 'none';
-																e.target.nextElementSibling.style.display = 'block';
-															}}
-														/>
-														<div className="hidden bg-gray-100 p-8 rounded-lg text-center text-gray-500">
-															Не вдалося завантажити фото
-														</div>
-													</div>
-												) : (
-													<div className="bg-gray-100 p-12 rounded-lg text-center text-gray-500 mb-4">
-														Фото відсутнє
+												{filteredPassepartout2.length > 0 && !selectedPassepartout2 && (
+													<div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+														{filteredPassepartout2.map((item) => (
+															<button
+																key={item.article}
+																onClick={() => {
+																	setSelectedPassepartout2(item);
+																	setPassepartout2Search(item.article);
+																}}
+																className="w-full px-4 py-2 text-left hover:bg-gray-100"
+															>
+																<div className="font-medium text-gray-900">{item.article}</div>
+																<div className="text-sm text-gray-600">{item.pricePerM2} грн/м²</div>
+															</button>
+														))}
 													</div>
 												)}
+											</div>
+											{selectedPassepartout2 && (
+												<div className="text-sm text-green-600">
+													✓ Обрано: {selectedPassepartout2.article} ({selectedPassepartout2.pricePerM2} грн/м²)
+												</div>
+											)}
+											<input
+												name="passepartout2Field"
+												type="number"
+												value={passepartout2Field}
+												onChange={(e) => setPassepartout2Field(e.target.value)}
+												placeholder="Видима ширина поля (мм)"
+												className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+											/>
+										</div>
+									)}
 
-												<div className="bg-gray-50 p-4 rounded-lg">
-													<div className="grid grid-cols-2 gap-4 text-sm">
-														<div>
-															<span className="text-gray-600">Артикул:</span>
-															<span className="ml-2 font-semibold">{selectedBaguette.article}</span>
-														</div>
-														<div>
-															<span className="text-gray-600">Ціна:</span>
-															<span className="ml-2 font-semibold">{selectedBaguette.pricePerMeter} грн/м</span>
-														</div>
-														<div>
-															<span className="text-gray-600">Ширина профілю:</span>
-															<span className="ml-2 font-semibold">{selectedBaguette.width} мм</span>
-														</div>
-														<div>
-															<span className="text-gray-600">Модель:</span>
-															<span className="ml-2 font-semibold">{selectedBaguette.model}</span>
-														</div>
+									{!showPassepartout2 && (
+										<button
+											onClick={() => setShowPassepartout2(true)}
+											className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+										>
+											<PlusIcon />
+											Додати друге паспарту
+										</button>
+									)}
+								</div>
+							)}
+
+							{/* Inner Dimensions Display - НОВИЙ БЛОК */}
+							{calculations.innerDimensions && (
+								<div className="bg-blue-50 p-3 rounded-md border border-blue-200 text-sm">
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+										<div>
+											<span className="text-gray-600">Внутрішній розмір: </span>
+											<span className="font-semibold text-gray-900">
+												{Math.round(calculations.innerDimensions.width)} x {Math.round(calculations.innerDimensions.height)} мм
+											</span>
+										</div>
+										<div>
+											<span className="text-gray-600">Площа: </span>
+											<span className="font-semibold text-gray-900">
+												{calculations.innerDimensions.area.toFixed(4)} м²
+											</span>
+										</div>
+										<div>
+											<span className="text-gray-600">Периметр: </span>
+											<span className="font-semibold text-gray-900">
+												{calculations.innerDimensions.perimeter.toFixed(3)} м
+											</span>
+										</div>
+									</div>
+								</div>
+							)}
+
+							{/* 5. Inner Wall */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Внутрішня стінка</label>
+								<select
+									name="innerWall"
+									value={innerWall}
+									onChange={(e) => setInnerWall(e.target.value)}
+									className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								>
+									{data.components.innerWall.map((item) => (
+										<option key={item.name} value={item.name}>{item.name}</option>
+									))}
+								</select>
+							</div>
+
+							{/* 6. Glass */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Скло</label>
+								<select
+									name="glass"
+									value={glass}
+									onChange={(e) => setGlass(e.target.value)}
+									className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								>
+									{data.components.glass.map((item) => (
+										<option key={item.name} value={item.name}>{item.name}</option>
+									))}
+								</select>
+							</div>
+
+							{/* 7. Back Wall */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Задня стінка</label>
+								<select
+									name="backWall"
+									value={backWall}
+									onChange={(e) => setBackWall(e.target.value)}
+									className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								>
+									{data.components.backWall.map((item) => (
+										<option key={item.name} value={item.name}>{item.name}</option>
+									))}
+								</select>
+							</div>
+
+							{/* 8. Mounting */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Кріплення</label>
+								<select
+									name="mounting"
+									value={mounting}
+									onChange={(e) => setMounting(e.target.value)}
+									className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								>
+									{data.components.mounting.map((item) => (
+										<option key={item.name} value={item.name}>{item.name}</option>
+									))}
+								</select>
+							</div>
+
+							{/* 9. Work Type */}
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Тип роботи</label>
+								<select
+									name="workType"
+									value={workType}
+									onChange={(e) => setWorkType(e.target.value)}
+									className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								>
+									{data.workTypes.map((item) => (
+										<option key={item.name} value={item.name}>{item.name}</option>
+									))}
+								</select>
+							</div>
+
+
+							{/* МОДАЛЬНЕ ВІКНО З ФОТО БАГЕТУ */}
+							{showBaguettePhoto && selectedBaguette && (
+								<div
+									className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 !mt-0"
+									onClick={() => setShowBaguettePhoto(false)}
+								>
+									<div
+										className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+										onClick={(e) => e.stopPropagation()}
+									>
+										{/* Кнопка закриття */}
+										<button
+											onClick={() => setShowBaguettePhoto(false)}
+											className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+										>
+											<XIcon />
+										</button>
+
+										{/* Контент модального вікна */}
+										<div className="p-6">
+											<h3 className="text-xl font-semibold text-gray-900 mb-4">
+												Багет {selectedBaguette.article}
+											</h3>
+
+											{selectedBaguette.img ? (
+												<div className="mb-4">
+													<img
+														src={selectedBaguette.img}
+														alt={`Багет ${selectedBaguette.article}`}
+														className="w-full h-auto rounded-lg"
+														onError={(e) => {
+															e.target.style.display = 'none';
+															e.target.nextElementSibling.style.display = 'block';
+														}}
+													/>
+													<div className="hidden bg-gray-100 p-8 rounded-lg text-center text-gray-500">
+														Не вдалося завантажити фото
+													</div>
+												</div>
+											) : (
+												<div className="bg-gray-100 p-12 rounded-lg text-center text-gray-500 mb-4">
+													Фото відсутнє
+												</div>
+											)}
+
+											<div className="bg-gray-50 p-4 rounded-lg">
+												<div className="grid grid-cols-2 gap-4 text-sm">
+													<div>
+														<span className="text-gray-600">Артикул:</span>
+														<span className="ml-2 font-semibold">{selectedBaguette.article}</span>
+													</div>
+													<div>
+														<span className="text-gray-600">Ціна:</span>
+														<span className="ml-2 font-semibold">{selectedBaguette.pricePerMeter} грн/м</span>
+													</div>
+													<div>
+														<span className="text-gray-600">Ширина профілю:</span>
+														<span className="ml-2 font-semibold">{selectedBaguette.width} мм</span>
+													</div>
+													<div>
+														<span className="text-gray-600">Модель:</span>
+														<span className="ml-2 font-semibold">{selectedBaguette.model}</span>
 													</div>
 												</div>
 											</div>
 										</div>
 									</div>
-								)}
-							
-                        </div>
+								</div>
+							)}
 
-                        {calculations.total > 0 && (
+						</div>
+
+						{calculations.total > 0 && (
 							<div className="bg-green-50 rounded-lg shadow-sm p-6 mt-6 border-2 border-green-200">
 								{/* Десктоп: 3 колонки в ряд */}
 								<div className="hidden md:grid md:grid-cols-3 gap-6 mb-6">
@@ -1211,7 +1210,7 @@
 											{calculations.total.toFixed(2)} грн
 										</div>
 									</div>
-									
+
 									{/* Заробіток продавця - по центру */}
 									<div className="text-center">
 										<div className="text-sm font-medium text-gray-600 mb-1">Заробіток продавця</div>
@@ -1219,7 +1218,7 @@
 											{(calculations.total * 0.25).toFixed(2)} грн
 										</div>
 									</div>
-									
+
 									{/* Ціна майстерні - зправа */}
 									<div className="text-center">
 										<div className="text-sm font-medium text-gray-600 mb-1">Ціна майстерні</div>
@@ -1239,7 +1238,7 @@
 												{calculations.total.toFixed(2)} грн
 											</div>
 										</div>
-										
+
 										{/* Ціна майстерні */}
 										<div className="text-center">
 											<div className="text-xs font-medium text-gray-600 mb-1">Ціна майстерні</div>
@@ -1248,7 +1247,7 @@
 											</div>
 										</div>
 									</div>
-									
+
 									{/* Заробіток продавця */}
 									<div className="text-center">
 										<div className="text-xs font-medium text-gray-600 mb-1">Заробіток продавця</div>
@@ -1258,82 +1257,82 @@
 									</div>
 								</div>
 
-                                {SHOW_ITEM_PRICES && calculations.details.length > 0 && (
-                                    <div className="mt-6 pt-6 border-t border-green-200">
-                                        <div className="text-sm font-medium text-gray-700 mb-3">Деталізація:</div>
-                                        <div className="space-y-2">
-                                            {calculations.details.map((detail, idx) => (
-                                                <div key={idx} className="flex justify-between text-sm">
-                                                    <span className="text-gray-600">{detail.name}</span>
-                                                    <span className="font-medium text-gray-900">{detail.cost.toFixed(2)} грн</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-					</div>
-						{/* FOOTER */}
-						
-						<footer className="bg-white border-t border-gray-200 mt-12">
-							<div className="max-w-3xl mx-auto px-6 py-8">
-							<h3 className="font-semibold text-gray-900 mb-2">Контакти</h3>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									<div>
-										
-										<p className="text-sm font-medium text-gray-700 mb-2">Майстерня</p>
-										<div className="grid grid-cols-[min-content_1fr] gap-2">										
-											<div className="max-w-32">
-												<p className="text-sm font-normal text-gray-700 mb-1">Телефон:</p>
-												<p className="text-sm font-normal text-gray-700 mb-1">Viber:</p>
-												<p className="text-sm font-normal text-gray-700 mb-1">Telegram:</p>
-											</div>
-											<div>
-												<a href="tel:+380976171601">
-													<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-green-600">+380976171601</p>
-												</a>
-												<a href="viber://chat?number=+380976171601" target="_blank">
-													<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-indigo-600">Арт Мілленніум</p>
-												</a>
-												<a href="https://t.me/art_millennium" target="_blank">
-													<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-sky-600">@art_millennium</p>
-												</a>
-											</div>
-										</div>		
-										
-									</div>
-									<div>
-										<p className="text-sm font-medium text-gray-700 mb-2">Бухгалтерія</p>
-										<div className="grid grid-cols-[min-content_1fr] gap-2">										
-											<div className="max-w-32">
-												<p className="text-sm font-normal text-gray-700 mb-1">Телефон:</p>
-												<p className="text-sm font-normal text-gray-700 mb-1">Viber:</p>
+								{SHOW_ITEM_PRICES && calculations.details.length > 0 && (
+									<div className="mt-6 pt-6 border-t border-green-200">
+										<div className="text-sm font-medium text-gray-700 mb-3">Деталізація:</div>
+										<div className="space-y-2">
+											{calculations.details.map((detail, idx) => (
+												<div key={idx} className="flex justify-between text-sm">
+													<span className="text-gray-600">{detail.name}</span>
+													<span className="font-medium text-gray-900">{detail.cost.toFixed(2)} грн</span>
 												</div>
-											<div>
-												<a href="tel:+380986083602">
-													<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-green-600">+380986083602</p>
-												</a>
-												<a href="viber://chat?number=+380986083602" target="_blank">
-													<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-indigo-600">Art Millennium Хмельницький</p>
-												</a>												
-											</div>
-										</div>										
-									</div>									
+											))}
+										</div>
+									</div>
+								)}
+							</div>
+						)}
+					</div>
+					{/* FOOTER */}
+
+					<footer className="bg-white border-t border-gray-200 mt-12">
+						<div className="max-w-3xl mx-auto px-6 py-8">
+							<h3 className="font-semibold text-gray-900 mb-2">Контакти</h3>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								<div>
+
+									<p className="text-sm font-medium text-gray-700 mb-2">Майстерня</p>
+									<div className="grid grid-cols-[min-content_1fr] gap-2">
+										<div className="max-w-32">
+											<p className="text-sm font-normal text-gray-700 mb-1">Телефон:</p>
+											<p className="text-sm font-normal text-gray-700 mb-1">Viber:</p>
+											<p className="text-sm font-normal text-gray-700 mb-1">Telegram:</p>
+										</div>
+										<div>
+											<a href="tel:+380976171601">
+												<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-green-600">+380976171601</p>
+											</a>
+											<a href="viber://chat?number=+380976171601" target="_blank">
+												<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-indigo-600">Арт Мілленніум</p>
+											</a>
+											<a href="https://t.me/art_millennium" target="_blank">
+												<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-sky-600">@art_millennium</p>
+											</a>
+										</div>
+									</div>
+
 								</div>
-								<div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-									© 2025 Art Millennuim. Всі права захищені.
+								<div>
+									<p className="text-sm font-medium text-gray-700 mb-2">Бухгалтерія</p>
+									<div className="grid grid-cols-[min-content_1fr] gap-2">
+										<div className="max-w-32">
+											<p className="text-sm font-normal text-gray-700 mb-1">Телефон:</p>
+											<p className="text-sm font-normal text-gray-700 mb-1">Viber:</p>
+										</div>
+										<div>
+											<a href="tel:+380986083602">
+												<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-green-600">+380986083602</p>
+											</a>
+											<a href="viber://chat?number=+380986083602" target="_blank">
+												<p className="text-sm font-normal text-gray-700 mb-1 underline decoration-indigo-600">Art Millennium Хмельницький</p>
+											</a>
+										</div>
+									</div>
 								</div>
 							</div>
-						</footer>
-						
-                    
-                </div>
-            );
-        }
+							<div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+								© 2025 Art Millennuim. Всі права захищені.
+							</div>
+						</div>
+					</footer>
 
-        ReactDOM.render(<FrameCalculator />, document.getElementById('root'));
-    </script>
+
+				</div>
+			);
+		}
+
+		ReactDOM.render(<FrameCalculator />, document.getElementById('root'));
+	</script>
 </body>
 
 </html>
